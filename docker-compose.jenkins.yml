@@ -12,7 +12,7 @@ services:
       - "50000:50000"
     environment:
       JAVA_OPTS: "-Xmx512m -Xms512m"
-      JENKINS_OPTS: "--prefix=/jenkins"
+      JENKINS_OPTS: ""
     volumes:
       # Jenkins home directory
       - jenkins_home:/var/jenkins_home
