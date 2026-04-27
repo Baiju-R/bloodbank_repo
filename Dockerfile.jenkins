@@ -2,11 +2,12 @@ FROM jenkins/jenkins:lts-jdk17
 
 USER root
 
-# Install Docker CLI from official Docker repository
+# Install Docker CLI and Git
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    git \
     gnupg \
     lsb-release && \
     curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
