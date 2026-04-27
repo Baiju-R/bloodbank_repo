@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions - BloodBridge</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .terms-wrap {
+            padding: 50px 0 80px;
+        }
+
+        .terms-card {
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 18px 55px rgba(0,0,0,0.10);
+            border: 1px solid rgba(226,232,240,0.9);
+            overflow: hidden;
+        }
+
+        .terms-header {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: #fff;
+            padding: 22px 26px;
+        }
+
+        .terms-header h1 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .terms-header p {
+            margin: 8px 0 0;
+            opacity: 0.95;
+        }
+
+        .terms-body {
+            padding: 26px;
+        }
+
+        .terms-body h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-top: 22px;
+        }
+
+        .terms-body p,
+        .terms-body li {
+            color: #334155;
+            line-height: 1.75;
+            font-size: 0.98rem;
+        }
+
+        .terms-body ul {
+            padding-left: 18px;
+        }
+
+        .badge-soft {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            color: #0f172a;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #0f172a;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: none;
+            color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    {% include "blood/navbar.html" %}
+
+    <div class="terms-wrap">
+        <div class="container" style="max-width: 980px;">
+            <div class="mb-3">
+                <a class="back-link" href="/">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Home
+                </a>
+            </div>
+
+            <div class="terms-card">
+                <div class="terms-header">
+                    <h1><i class="fas fa-file-contract"></i> Terms & Conditions</h1>
+                    <p class="mb-0">Please read these terms carefully before using BloodBridge.</p>
+                </div>
+
+                <div class="terms-body">
+                    <div class="mb-3">
+                        <span class="badge-soft">
+                            <i class="far fa-calendar-alt"></i>
+                            Last updated: {{ last_updated|date:"d M Y" }}
+                        </span>
+                    </div>
+
+                    <p>
+                        By accessing or using BloodBridge (the “Platform”), you agree to be bound by these Terms & Conditions.
+                        If you do not agree, please do not use the Platform.
+                    </p>
+
+                    <h3>1) Platform Purpose</h3>
+                    <p>
+                        BloodBridge helps connect donors, patients, and administrators to facilitate blood donation and request workflows.
+                        The Platform does not provide medical advice and does not replace professional healthcare guidance.
+                    </p>
+
+                    <h3>2) Eligibility & Accounts</h3>
+                    <ul>
+                        <li>You must provide accurate and complete information during signup and when submitting requests/feedback.</li>
+                        <li>You are responsible for keeping your login credentials confidential.</li>
+                        <li>Admins may suspend accounts that violate these Terms or misuse the Platform.</li>
+                    </ul>
+
+                    <h3>3) Donations & Requests</h3>
+                    <ul>
+                        <li>Donation and request approvals are handled by administrators and depend on availability and verification.</li>
+                        <li>All quantities/units shown are informational; final decisions rest with the admin workflow.</li>
+                        <li>Do not submit false or misleading requests. Emergency situations should also contact local medical services directly.</li>
+                    </ul>
+
+                    <h3>4) User Content (Feedback, Images)</h3>
+                    <ul>
+                        <li>You may submit feedback, ratings, and images (“Content”). You retain ownership of your Content.</li>
+                        <li>You grant the Platform permission to display your public feedback on the homepage and “View All” page.</li>
+                        <li>Do not upload illegal, offensive, or private medical data belonging to others without permission.</li>
+                    </ul>
+
+                    <h3>5) Privacy</h3>
+                    <p>
+                        We aim to handle personal data responsibly. Administrators may access donor/patient details to process workflows.
+                        Anonymous feedback may be shown publicly without linking to an account.
+                    </p>
+
+                    <h3>6) Notifications</h3>
+                    <p>
+                        The Platform may send notifications (e.g., SMS/email) related to requests and approvals if enabled.
+                        You can opt out where available, but this may limit timely updates.
+                    </p>
+
+                    <h3>7) Prohibited Use</h3>
+                    <ul>
+                        <li>Attempting to hack, scrape, or disrupt the Platform.</li>
+                        <li>Submitting fraudulent data, impersonating others, or abusing the donation/request system.</li>
+                        <li>Uploading malware or harmful content.</li>
+                    </ul>
+
+                    <h3>8) Disclaimer & Limitation of Liability</h3>
+                    <p>
+                        The Platform is provided “as is” without warranties. While we try to ensure accuracy and availability,
+                        we do not guarantee uninterrupted service, perfect data accuracy, or successful fulfillment of all requests.
+                    </p>
+
+                    <h3>9) Changes to Terms</h3>
+                    <p>
+                        We may update these Terms from time to time. Continued use of the Platform after changes means you accept the updated Terms.
+                    </p>
+
+                    <h3>10) Contact</h3>
+                    <p class="mb-0">
+                        For questions about these Terms, please contact the administrator through the Platform support channel.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

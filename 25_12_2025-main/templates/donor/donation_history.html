@@ -1,0 +1,565 @@
+{% extends 'donor/donorbase.html' %}
+{% block content %}
+{% load widget_tweaks %}
+{%load static%}
+
+<style>
+    /* Enhanced Donation History Styles */
+    .donation-history-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 40px 0;
+        position: relative;
+    }
+    
+    .donation-history-dashboard::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="hearts" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23hearts)"/></svg>');
+        z-index: 0;
+    }
+    
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .history-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .history-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60, #3498db, #9b59b6);
+        background-size: 200% 100%;
+        animation: gradient-shift 3s ease-in-out infinite;
+    }
+    
+    @keyframes gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+    }
+    
+    .history-icon {
+        font-size: 3.5rem;
+        color: #e74c3c;
+        margin-bottom: 20px;
+        animation: heartPulse 2s ease-in-out infinite;
+        text-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+    }
+    
+    @keyframes heartPulse {
+        0%, 100% { 
+            transform: scale(1);
+            filter: drop-shadow(0 0 10px rgba(231, 76, 60, 0.5));
+        }
+        50% { 
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 20px rgba(231, 76, 60, 0.7));
+        }
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .page-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+        border-radius: 2px;
+        animation: underlineGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes underlineGlow {
+        from { box-shadow: 0 0 5px rgba(231, 76, 60, 0.5); }
+        to { box-shadow: 0 0 20px rgba(231, 76, 60, 0.8), 0 0 30px rgba(231, 76, 60, 0.4); }
+    }
+    
+    .page-subtitle {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        margin-top: 20px;
+        font-weight: 500;
+    }
+    
+    /* Enhanced Table Styles */
+    .table-wrapper {
+        overflow-x: auto;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        margin-top: 30px;
+        background: white;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .custom-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        font-family: 'Poppins', sans-serif;
+        margin-bottom: 0;
+    }
+    
+    .custom-table thead {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+        position: relative;
+    }
+    
+    .custom-table thead::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60, #3498db);
+    }
+    
+    .custom-table thead th {
+        color: white;
+        font-weight: 700;
+        padding: 20px 15px;
+        text-align: center;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        border: none;
+        position: relative;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .custom-table thead th:hover {
+        background: rgba(255,255,255,0.1);
+    }
+    
+    .custom-table tbody tr {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-bottom: 1px solid rgba(236, 240, 241, 0.5);
+        position: relative;
+    }
+    
+    .custom-table tbody tr:hover {
+        background: linear-gradient(45deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+        transform: scale(1.01);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .custom-table tbody tr:hover::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, #e74c3c, #f39c12);
+    }
+    
+    .custom-table tbody td {
+        padding: 18px 15px;
+        text-align: center;
+        color: #2c3e50;
+        font-weight: 500;
+        border: none;
+        vertical-align: middle;
+        position: relative;
+    }
+    
+    /* Enhanced Status Labels */
+    .status-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        color: white;
+    }
+    
+    .status-label::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .status-label:hover::before {
+        left: 100%;
+    }
+    
+    .status-approved {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+    }
+    
+    .status-rejected {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+    }
+    
+    .status-label:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    
+    /* Enhanced Value Styling */
+    .blood-group {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        transition: all 0.3s ease;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .blood-group:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
+    }
+    
+    .unit-value {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .unit-value:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.5);
+    }
+    
+    .age-value {
+        background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .age-value:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(155, 89, 182, 0.5);
+    }
+    
+    .disease-value {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .disease-value:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(243, 156, 18, 0.5);
+    }
+    
+    .date-value {
+        color: #2c3e50;
+        font-weight: 700;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 8px 16px;
+        border-radius: 15px;
+        border-left: 4px solid #667eea;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    
+    .date-value:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #7f8c8d;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 20px;
+        margin-top: 30px;
+        border: 2px dashed #bdc3c7;
+        transition: all 0.3s ease;
+    }
+    
+    .empty-state:hover {
+        border-color: #3498db;
+        background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    }
+    
+    .empty-state i {
+        font-size: 5rem;
+        margin-bottom: 30px;
+        opacity: 0.6;
+        color: #e74c3c;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .empty-state h4 {
+        margin-bottom: 15px;
+        color: #2c3e50;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .empty-state p {
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+    }
+    
+    .empty-state .cta-button {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .empty-state .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .history-container {
+            margin: 20px;
+            padding: 30px 20px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .history-icon {
+            font-size: 3rem;
+        }
+        
+        .custom-table thead th,
+        .custom-table tbody td {
+            padding: 15px 10px;
+            font-size: 0.85rem;
+        }
+        
+        .status-label {
+            padding: 8px 12px;
+            font-size: 0.75rem;
+        }
+    }
+    
+    /* Animation */
+    .history-container {
+        animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    .custom-table tbody tr {
+        animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    
+    @keyframes slideIn {
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+</style>
+
+<div class="donation-history-dashboard">
+    <div class="container">
+        <div class="history-container">
+            <div class="page-header">
+                <div class="history-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h1 class="page-title">My Donation History</h1>
+                <p class="page-subtitle">Track all your life-saving blood donation contributions</p>
+            </div>
+            
+            {% if donations %}
+                <div class="table-wrapper">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-birthday-cake"></i> Donor Age</th>
+                                <th><i class="fas fa-disease"></i> Disease (if any)</th>
+                                <th><i class="fas fa-tint"></i> Blood Group</th>
+                                <th><i class="fas fa-flask"></i> Unit</th>
+                                <th><i class="fas fa-calendar-alt"></i> Date</th>
+                                <th><i class="fas fa-check-circle"></i> Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in donations %}
+                            <tr>
+                                <td><span class="age-value">{{ t.age }} years</span></td>
+                                <td><span class="disease-value">{{ t.disease|default:"None" }}</span></td>
+                                <td><span class="blood-group">{{ t.bloodgroup }}</span></td>
+                                <td><span class="unit-value">{{ t.unit }} ml</span></td>
+                                <td><span class="date-value">{{ t.date|date:"M d, Y" }}</span></td>
+                                <td>
+                                    {% if t.status == 'Approved' %}
+                                        <span class="status-label status-approved">
+                                            <i class="fas fa-check-circle"></i> Approved
+                                        </span>
+                                    {% elif t.status == 'Rejected' %}
+                                        <span class="status-label status-rejected">
+                                            <i class="fas fa-times-circle"></i> Rejected
+                                        </span>
+                                    {% else %}
+                                        <span class="status-label status-pending">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-heart-broken"></i>
+                    <h4>No Donation History Yet</h4>
+                    <p>You haven't made any blood donations yet. Every donation can save up to 3 lives!</p>
+                    <a href="/donor/donate-blood" class="cta-button">
+                        <i class="fas fa-heart"></i>
+                        Start Donating Today
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Enhanced interactive functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Staggered animations for table rows
+        const rows = document.querySelectorAll('.custom-table tbody tr');
+        rows.forEach((row, index) => {
+            row.style.animationDelay = `${(index * 0.1) + 0.5}s`;
+        });
+        
+        // Enhanced status label interactions
+        const statusLabels = document.querySelectorAll('.status-label');
+        statusLabels.forEach(label => {
+            label.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.05)';
+                this.style.zIndex = '10';
+            });
+            
+            label.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+                this.style.zIndex = '1';
+            });
+        });
+        
+        // Enhanced hover effects for value badges
+        const valueBadges = document.querySelectorAll('.blood-group, .unit-value, .age-value, .disease-value, .date-value');
+        valueBadges.forEach(badge => {
+            badge.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1) translateY(-2px)';
+                this.style.zIndex = '5';
+            });
+            
+            badge.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) translateY(0)';
+                this.style.zIndex = '1';
+            });
+        });
+    });
+</script>
+
+{% endblock content %}

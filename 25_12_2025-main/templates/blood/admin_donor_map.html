@@ -1,0 +1,717 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+{% load static %}
+
+<!-- Leaflet core + plugins (clustering, heatmap, fullscreen) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@3.0.0/Control.FullScreen.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://unpkg.com/leaflet.fullscreen@3.0.0/Control.FullScreen.js"></script>
+
+<style>
+/* ── Layout shell ──────────────────────────────────────────────────────── */
+.adv-map-shell { padding: 0 0 40px; color: #0f172a; }
+
+.adv-map-header {
+    display: flex; flex-wrap: wrap; justify-content: space-between;
+    align-items: flex-start; gap: 16px; margin-bottom: 18px; padding: 24px 0 0;
+}
+.adv-map-header h1 { margin: 0; font-weight: 800; font-size: 1.6rem; letter-spacing: -0.5px; }
+.adv-map-header h1 i { color: #2563eb; }
+.adv-map-subtitle { color: #64748b; font-size: 0.92rem; margin-top: 4px; }
+
+/* ── Stat cards ────────────────────────────────────────────────────────── */
+.map-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 12px; margin-bottom: 18px;
+}
+.map-stat {
+    background: #fff; border-radius: 16px; padding: 16px 18px;
+    box-shadow: 0 4px 20px rgba(15,23,42,.06);
+    border: 1px solid rgba(226,232,240,.7); position: relative; overflow: hidden;
+}
+.map-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+    border-radius: 16px 0 0 16px;
+}
+.map-stat.st-total::before   { background: #2563eb; }
+.map-stat.st-pinned::before  { background: #10b981; }
+.map-stat.st-verified::before{ background: #047857; }
+.map-stat.st-pending::before { background: #f59e0b; }
+.map-stat.st-missing::before { background: #ef4444; }
+.map-stat .label { text-transform: uppercase; font-size: .72rem; letter-spacing: .8px; color: #94a3b8; font-weight: 600; }
+.map-stat .val { font-size: 1.55rem; font-weight: 800; margin-top: 2px; }
+
+/* ── Map container ─────────────────────────────────────────────────────── */
+.map-wrapper {
+    position: relative; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(15,23,42,.13);
+    border: 1px solid rgba(148,163,184,.3);
+}
+#donor-map { height: 600px; width: 100%; z-index: 1; background: #f1f5f9; }
+
+/* ── Floating controls panel ───────────────────────────────────────────── */
+.map-controls {
+    position: absolute; top: 12px; right: 12px; z-index: 1000;
+    background: rgba(255,255,255,.95); backdrop-filter: blur(12px);
+    border-radius: 14px; padding: 14px 16px; min-width: 240px;
+    box-shadow: 0 8px 32px rgba(15,23,42,.15); border: 1px solid rgba(226,232,240,.6);
+    max-height: calc(100% - 24px); overflow-y: auto;
+    transition: transform .3s ease, opacity .3s ease;
+}
+.map-controls.collapsed { transform: translateX(calc(100% + 4px)); opacity: 0; pointer-events: none; }
+.ctrl-toggle {
+    position: absolute; top: 12px; right: 12px; z-index: 1001;
+    width: 38px; height: 38px; border-radius: 10px; border: none;
+    background: rgba(255,255,255,.95); backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(15,23,42,.15); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: #334155; transition: all .2s;
+}
+.ctrl-toggle:hover { background: #fff; transform: scale(1.05); }
+
+.ctrl-section { margin-bottom: 12px; }
+.ctrl-section:last-child { margin-bottom: 0; }
+.ctrl-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .8px; color: #94a3b8; font-weight: 700; margin-bottom: 6px; }
+
+/* Filter chips */
+.bg-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.bg-chip {
+    padding: 4px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700;
+    cursor: pointer; border: 2px solid transparent; transition: all .2s;
+    user-select: none; line-height: 1.4;
+}
+.bg-chip.active { border-color: currentColor; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+.bg-chip.inactive { opacity: .35; }
+
+/* Blood group colors */
+.bg-Apos  { background: rgba(239,68,68,.15); color: #dc2626; }
+.bg-Aneg  { background: rgba(239,68,68,.08); color: #b91c1c; }
+.bg-Bpos  { background: rgba(59,130,246,.15); color: #2563eb; }
+.bg-Bneg  { background: rgba(59,130,246,.08); color: #1d4ed8; }
+.bg-ABpos { background: rgba(168,85,247,.15); color: #7c3aed; }
+.bg-ABneg { background: rgba(168,85,247,.08); color: #6d28d9; }
+.bg-Opos  { background: rgba(16,185,129,.15); color: #059669; }
+.bg-Oneg  { background: rgba(16,185,129,.08); color: #047857; }
+
+/* Toggle switches */
+.ctrl-toggles { display: flex; flex-direction: column; gap: 6px; }
+.toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: .82rem; color: #334155; font-weight: 500;
+}
+.toggle-sw {
+    position: relative; width: 36px; height: 20px; appearance: none;
+    background: #cbd5e1; border-radius: 10px; cursor: pointer; transition: background .2s;
+    outline: none; border: none; flex-shrink: 0;
+}
+.toggle-sw:checked { background: #2563eb; }
+.toggle-sw::before {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%; background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s;
+}
+.toggle-sw:checked::before { transform: translateX(16px); }
+
+/* Search bar */
+.map-search {
+    width: 100%; padding: 7px 10px 7px 32px; border-radius: 10px;
+    border: 1px solid #e2e8f0; font-size: .82rem; outline: none;
+    transition: border-color .2s; background: #fff;
+}
+.map-search:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.search-wrap { position: relative; }
+.search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: .85rem; }
+
+/* ── Legend (bottom-left inside map) ───────────────────────────────────── */
+.map-legend {
+    position: absolute; bottom: 12px; left: 12px; z-index: 1000;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+    border-radius: 12px; padding: 10px 14px;
+    box-shadow: 0 4px 16px rgba(15,23,42,.12); font-size: .75rem;
+}
+.legend-row { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+.legend-row:last-child { margin-bottom: 0; }
+.legend-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    flex-shrink: 0; border: 2px solid rgba(255,255,255,.8);
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+
+/* ── Donor sidebar list ────────────────────────────────────────────────── */
+.map-bottom-grid {
+    display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0,1fr);
+    gap: 20px; margin-top: 24px;
+}
+.map-panel {
+    background: #fff; border-radius: 20px; padding: 20px;
+    box-shadow: 0 12px 30px rgba(15,23,42,.07); border: 1px solid rgba(226,232,240,.7);
+}
+.map-panel h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; }
+.map-panel h3 i { margin-right: 6px; }
+
+.donor-list { max-height: 400px; overflow-y: auto; }
+.d-row {
+    display: grid; grid-template-columns: 1fr 100px 65px;
+    gap: 10px; padding: 12px 0; border-bottom: 1px solid rgba(226,232,240,.7);
+    align-items: center; transition: background .15s;
+}
+.d-row:hover { background: rgba(37,99,235,.03); }
+.d-row:last-child { border-bottom: none; }
+.d-name { font-weight: 700; font-size: .9rem; }
+.d-meta { font-size: .78rem; color: #64748b; }
+.d-badge {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px;
+    border-radius: 20px; font-size: .72rem; font-weight: 700;
+}
+.d-verified { background: rgba(16,185,129,.12); color: #047857; }
+.d-pending  { background: rgba(251,191,36,.15); color: #92400e; }
+
+.verify-btn {
+    border: none; border-radius: 20px; padding: 5px 12px;
+    font-weight: 700; font-size: .75rem; cursor: pointer; color: #fff;
+    transition: all .2s;
+}
+.verify-btn.vfy { background: linear-gradient(135deg, #10b981, #059669); }
+.verify-btn.rst { background: linear-gradient(135deg, #f97316, #ea580c); }
+.verify-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+/* Actions header */
+.map-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bulk-btn {
+    border: none; border-radius: 30px; padding: 10px 20px;
+    font-weight: 700; font-size: .85rem; cursor: pointer; color: #fff;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    box-shadow: 0 6px 20px rgba(37,99,235,.25); transition: all .2s;
+}
+.bulk-btn:hover:enabled { transform: translateY(-2px); opacity: .95; }
+.bulk-btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+
+.empty-state {
+    text-align: center; padding: 30px; color: #64748b;
+    border: 2px dashed rgba(148,163,184,.5); border-radius: 16px;
+}
+
+/* ── Custom cluster icons ──────────────────────────────────────────────── */
+.cluster-icon {
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: .85rem; color: #fff; letter-spacing: -.3px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.25);
+    animation: clusterPulse 2.5s ease-in-out infinite;
+}
+.cluster-sm  { background: rgba(37,99,235,.85); width: 36px; height: 36px; }
+.cluster-md  { background: rgba(124,58,237,.85); width: 44px; height: 44px; font-size: .95rem; }
+.cluster-lg  { background: rgba(239,68,68,.85); width: 52px; height: 52px; font-size: 1.05rem; }
+@keyframes clusterPulse {
+    0%, 100% { box-shadow: 0 3px 12px rgba(0,0,0,.25); }
+    50% { box-shadow: 0 3px 20px rgba(37,99,235,.45); }
+}
+
+/* ── Popup styles ──────────────────────────────────────────────────────── */
+.leaflet-popup-content-wrapper {
+    border-radius: 14px !important; box-shadow: 0 8px 32px rgba(15,23,42,.18) !important;
+    padding: 0 !important;
+}
+.leaflet-popup-content { margin: 0 !important; width: 280px !important; }
+.donor-popup { font-family: inherit; }
+.popup-header {
+    padding: 14px 16px 10px; border-bottom: 1px solid #f1f5f9;
+    display: flex; align-items: center; gap: 10px;
+}
+.popup-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: .95rem; color: #fff; flex-shrink: 0;
+}
+.popup-name { font-weight: 800; font-size: .95rem; color: #0f172a; }
+.popup-bg { font-size: .78rem; color: #64748b; font-weight: 600; }
+.popup-body { padding: 10px 16px 14px; }
+.popup-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; font-size: .8rem; color: #475569;
+}
+.popup-row .lbl { color: #94a3b8; font-weight: 600; }
+.popup-row .val { font-weight: 700; }
+.popup-status {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+    border-radius: 12px; font-size: .7rem; font-weight: 700;
+}
+.st-available { background: rgba(16,185,129,.12); color: #047857; }
+.st-unavailable { background: rgba(239,68,68,.1); color: #dc2626; }
+.st-recovery { background: rgba(251,191,36,.15); color: #92400e; }
+
+/* ── Coverage progress bars ────────────────────────────────────────────── */
+.coverage-bar-wrap { margin-bottom: 16px; }
+.coverage-bar-header { display: flex; justify-content: space-between; font-size: .82rem; margin-bottom: 4px; }
+.coverage-bar-label { color: #64748b; }
+.coverage-bar-value { font-weight: 700; }
+.coverage-bar-track { background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden; }
+.coverage-bar-fill { height: 100%; border-radius: 8px; width: 0; transition: width .5s; }
+.coverage-bar-fill--map    { background: linear-gradient(90deg, #2563eb, #10b981); }
+.coverage-bar-fill--verify { background: linear-gradient(90deg, #047857, #10b981); }
+
+@media (max-width: 992px) {
+    .map-bottom-grid { grid-template-columns: 1fr; }
+    .map-controls { min-width: 200px; }
+    #donor-map { height: 450px; }
+}
+@media (max-width: 576px) {
+    .map-stats { grid-template-columns: repeat(2, 1fr); }
+    #donor-map { height: 350px; }
+    .map-controls { min-width: 170px; font-size: .85rem; }
+}
+</style>
+
+<div class="adv-map-shell">
+    <!-- Header -->
+    <div class="adv-map-header">
+        <div>
+            <h1><i class="fas fa-globe-americas"></i> Donor Intelligence Map</h1>
+            <div class="adv-map-subtitle">Real-time donor locations with health status, clustering, heatmap &amp; multi-layer satellite view.</div>
+        </div>
+        <div class="map-actions">
+            <form method="post" style="display:inline">
+                {% csrf_token %}
+                <input type="hidden" name="intent" value="bulk_geocode">
+                <input type="hidden" name="limit" value="25">
+                <button type="submit" class="bulk-btn" {% if without_coordinates == 0 %}disabled{% endif %}>
+                    <i class="fas fa-satellite"></i> Auto-locate {{ without_coordinates }} missing
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="map-stats">
+        <div class="map-stat st-total"><div class="label">Total Donors</div><div class="val">{{ total_donors }}</div></div>
+        <div class="map-stat st-pinned"><div class="label">Mapped</div><div class="val">{{ pin_ready }}</div></div>
+        <div class="map-stat st-verified"><div class="label">Verified</div><div class="val">{{ verified_count }}</div></div>
+        <div class="map-stat st-pending"><div class="label">Pending</div><div class="val">{{ pending_count }}</div></div>
+        <div class="map-stat st-missing"><div class="label">Missing GPS</div><div class="val">{{ without_coordinates }}</div></div>
+    </div>
+
+    <!-- Map -->
+    <div class="map-wrapper">
+        <div id="donor-map"></div>
+
+        <!-- Floating controls toggle -->
+        <button class="ctrl-toggle" id="ctrlToggle" title="Toggle controls"><i class="fas fa-sliders-h"></i></button>
+
+        <!-- Floating controls panel -->
+        <div class="map-controls" id="mapControls">
+            <!-- Search -->
+            <div class="ctrl-section">
+                <div class="ctrl-label">Search Donor</div>
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="map-search" id="donorSearch" placeholder="Name, blood group, zip...">
+                </div>
+            </div>
+
+            <!-- Blood group filter -->
+            <div class="ctrl-section">
+                <div class="ctrl-label">Blood Group</div>
+                <div class="bg-chips" id="bgFilter">
+                    <span class="bg-chip bg-Apos active" data-bg="A+">A+</span>
+                    <span class="bg-chip bg-Aneg active" data-bg="A-">A&minus;</span>
+                    <span class="bg-chip bg-Bpos active" data-bg="B+">B+</span>
+                    <span class="bg-chip bg-Bneg active" data-bg="B-">B&minus;</span>
+                    <span class="bg-chip bg-ABpos active" data-bg="AB+">AB+</span>
+                    <span class="bg-chip bg-ABneg active" data-bg="AB-">AB&minus;</span>
+                    <span class="bg-chip bg-Opos active" data-bg="O+">O+</span>
+                    <span class="bg-chip bg-Oneg active" data-bg="O-">O&minus;</span>
+                </div>
+            </div>
+
+            <!-- Layer toggles -->
+            <div class="ctrl-section">
+                <div class="ctrl-label">Layers</div>
+                <div class="ctrl-toggles">
+                    <label class="toggle-row">Clustering <input type="checkbox" class="toggle-sw" id="toggleCluster" checked></label>
+                    <label class="toggle-row">Heatmap <input type="checkbox" class="toggle-sw" id="toggleHeat"></label>
+                    <label class="toggle-row">Available only <input type="checkbox" class="toggle-sw" id="toggleAvail"></label>
+                    <label class="toggle-row">Verified only <input type="checkbox" class="toggle-sw" id="toggleVerified"></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="map-legend">
+            <div class="legend-row"><div class="legend-dot" style="background:#10b981;"></div> Available &amp; ready</div>
+            <div class="legend-row"><div class="legend-dot" style="background:#f59e0b;"></div> In recovery</div>
+            <div class="legend-row"><div class="legend-dot" style="background:#ef4444;"></div> Unavailable</div>
+            <div class="legend-row"><div class="legend-dot" style="background:#6366f1;border:2px solid #4f46e5;"></div> Verified location</div>
+        </div>
+    </div>
+
+    <!-- Bottom grid: donor list + coverage -->
+    <div class="map-bottom-grid">
+        <div class="map-panel">
+            <h3><i class="fas fa-users"></i> Mapped Donors ({{ pin_ready }})</h3>
+            {% if pin_ready %}
+            <div class="donor-list">
+                {% for donor in donors %}
+                    {% if donor.latitude and donor.longitude %}
+                    <div class="d-row">
+                        <div>
+                            <div class="d-name">{{ donor.get_name }}</div>
+                            <div class="d-meta">@{{ donor.user.username }} &bull; {{ donor.bloodgroup }} &bull; {{ donor.address|truncatechars:35 }}</div>
+                        </div>
+                        <div>
+                            <span class="d-badge {% if donor.location_verified %}d-verified{% else %}d-pending{% endif %}">
+                                <i class="fas {% if donor.location_verified %}fa-check-circle{% else %}fa-clock{% endif %}"></i>
+                                {% if donor.location_verified %}Verified{% else %}Pending{% endif %}
+                            </span>
+                        </div>
+                        <div>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="donor_id" value="{{ donor.id }}">
+                                {% if donor.location_verified %}
+                                    <input type="hidden" name="action" value="reset">
+                                    <button type="submit" class="verify-btn rst">Reset</button>
+                                {% else %}
+                                    <input type="hidden" name="action" value="verify">
+                                    <button type="submit" class="verify-btn vfy">Verify</button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-map-pin fa-2x mb-2"></i>
+                <p class="mb-0">No donors have coordinates yet. Use <strong>Auto-locate</strong> above or enter lat/lng during donor signup.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="map-panel">
+            <h3><i class="fas fa-chart-pie"></i> Coverage</h3>
+            <div class="coverage-bar-wrap">
+                <div class="coverage-bar-header">
+                    <span class="coverage-bar-label">Mapping coverage</span>
+                    <span class="coverage-bar-value">{{ mapping_pct }}%</span>
+                </div>
+                <div class="coverage-bar-track">
+                    <div class="coverage-bar-fill coverage-bar-fill--map" data-width="{{ mapping_pct }}"></div>
+                </div>
+            </div>
+            <div class="coverage-bar-wrap">
+                <div class="coverage-bar-header">
+                    <span class="coverage-bar-label">Verification rate</span>
+                    <span class="coverage-bar-value">{{ verification_pct }}%</span>
+                </div>
+                <div class="coverage-bar-track">
+                    <div class="coverage-bar-fill coverage-bar-fill--verify" data-width="{{ verification_pct }}"></div>
+                </div>
+            </div>
+            <h3 style="margin-top:20px;"><i class="fas fa-lightbulb"></i> Tips</h3>
+            <ul style="padding-left:18px;color:#475569;font-size:.85rem;line-height:1.7;">
+                <li>Click clusters to zoom into donor groups</li>
+                <li>Toggle <strong>Heatmap</strong> to see donor density hot zones</li>
+                <li>Switch map tiles via the layer control (top-right)</li>
+                <li>Use <strong>Search</strong> to find donors by name, blood group, or zipcode</li>
+                <li>Click any marker for full donor profile details</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Data injection -->
+{{ map_data|json_script:"donor-map-data" }}
+{{ map_center|json_script:"map-center-data" }}
+
+<!-- Map initialization script -->
+<script>
+(function() {
+    'use strict';
+
+    // ── Data ─────────────────────────────────────────────────────────────
+    var donors = JSON.parse(document.getElementById('donor-map-data').textContent);
+    var center = JSON.parse(document.getElementById('map-center-data').textContent);
+
+    // ── Blood group color palette ────────────────────────────────────────
+    var BG_COLORS = {
+        'A+': '#dc2626', 'A-': '#b91c1c',
+        'B+': '#2563eb', 'B-': '#1d4ed8',
+        'AB+': '#7c3aed', 'AB-': '#6d28d9',
+        'O+': '#059669', 'O-': '#047857'
+    };
+
+    function statusColor(d) {
+        if (!d.is_available) return '#ef4444';
+        if (!d.is_ready) return '#f59e0b';
+        return '#10b981';
+    }
+
+    function statusLabel(d) {
+        if (!d.is_available) return 'Unavailable';
+        if (!d.is_ready) return 'In Recovery';
+        return 'Available';
+    }
+
+    function statusClass(d) {
+        if (!d.is_available) return 'st-unavailable';
+        if (!d.is_ready) return 'st-recovery';
+        return 'st-available';
+    }
+
+    // ── Map init ─────────────────────────────────────────────────────────
+    var map = L.map('donor-map', {
+        center: [center.lat, center.lng],
+        zoom: donors.length ? 5 : 3,
+        zoomControl: false,
+        fullscreenControl: true,
+        fullscreenControlOptions: { position: 'topleft' }
+    });
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // ── Tile layers ──────────────────────────────────────────────────────
+    var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    });
+    var cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
+    });
+    var cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
+    });
+    var esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        attribution: '&copy; Esri, Maxar, Earthstar Geographics'
+    });
+    var esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        attribution: '&copy; Esri, HERE, Garmin, USGS'
+    });
+
+    cartoLight.addTo(map);
+    L.control.layers({
+        'Light Mode': cartoLight,
+        'OpenStreetMap': osmLayer,
+        'Satellite': esriSatellite,
+        'Terrain': esriTopo,
+        'Dark Mode': cartoDark
+    }, null, { position: 'topright', collapsed: true }).addTo(map);
+
+    L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
+
+    // ── Marker creation ──────────────────────────────────────────────────
+    function createMarkerIcon(d) {
+        var bgColor = BG_COLORS[d.bloodgroup] || '#64748b';
+        var stColor = statusColor(d);
+        var size = d.location_verified ? 32 : 26;
+        var ring = d.location_verified
+            ? '<circle cx="16" cy="16" r="14" fill="none" stroke="#6366f1" stroke-width="3" stroke-dasharray="4,2"/>'
+            : '';
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 32 32">'
+            + '<circle cx="16" cy="16" r="13" fill="' + bgColor + '" stroke="' + stColor + '" stroke-width="3"/>'
+            + ring
+            + '<text x="16" y="20" text-anchor="middle" fill="#fff" font-size="9" font-weight="800" font-family="system-ui">' + d.bloodgroup + '</text>'
+            + '</svg>';
+        return L.divIcon({
+            html: svg, className: '',
+            iconSize: [size, size], iconAnchor: [size/2, size/2],
+            popupAnchor: [0, -size/2 - 4]
+        });
+    }
+
+    function createPopup(d) {
+        var bgColor = BG_COLORS[d.bloodgroup] || '#64748b';
+        var hbStr = d.hemoglobin !== null ? d.hemoglobin.toFixed(1) + ' g/dL' : '\u2014';
+        var wtStr = d.weight_kg !== null ? d.weight_kg + ' kg' : '\u2014';
+        var ldStr = d.last_donated || 'Never';
+        return '<div class="donor-popup">'
+            + '<div class="popup-header">'
+            +   '<div class="popup-avatar" style="background:' + bgColor + ';">' + d.bloodgroup + '</div>'
+            +   '<div><div class="popup-name">' + d.name + '</div>'
+            +   '<div class="popup-bg">@' + d.username + ' &bull; ' + d.donations + ' donations</div></div>'
+            + '</div>'
+            + '<div class="popup-body">'
+            +   '<div class="popup-row"><span class="lbl">Status</span><span class="popup-status ' + statusClass(d) + '"><i class="fas fa-circle" style="font-size:.45rem;"></i> ' + statusLabel(d) + '</span></div>'
+            +   '<div class="popup-row"><span class="lbl">Hemoglobin</span><span class="val">' + hbStr + '</span></div>'
+            +   '<div class="popup-row"><span class="lbl">Weight</span><span class="val">' + wtStr + '</span></div>'
+            +   '<div class="popup-row"><span class="lbl">Total donated</span><span class="val">' + Math.round(d.units) + ' ml</span></div>'
+            +   '<div class="popup-row"><span class="lbl">Last donation</span><span class="val">' + ldStr + '</span></div>'
+            +   '<div class="popup-row"><span class="lbl">Mobile</span><span class="val">' + d.mobile + '</span></div>'
+            +   '<div class="popup-row"><span class="lbl">Address</span><span class="val" style="text-align:right;max-width:160px;">' + (d.address || '\u2014') + '</span></div>'
+            +   '<div class="popup-row"><span class="lbl">Location</span><span class="val">' + (d.location_verified ? '\u2705 Verified' : '\u23F3 Pending') + '</span></div>'
+            + '</div></div>';
+    }
+
+    // ── Build all markers ────────────────────────────────────────────────
+    var allMarkers = [];
+    donors.forEach(function(d) {
+        var marker = L.marker([d.latitude, d.longitude], { icon: createMarkerIcon(d) });
+        marker.bindPopup(createPopup(d), { maxWidth: 300 });
+        marker._donorData = d;
+        allMarkers.push(marker);
+    });
+
+    // ── Cluster group factory ────────────────────────────────────────────
+    function makeClusterGroup() {
+        return L.markerClusterGroup({
+            maxClusterRadius: 50,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            iconCreateFunction: function(cluster) {
+                var count = cluster.getChildCount();
+                var cls = 'cluster-sm';
+                if (count > 20) cls = 'cluster-lg';
+                else if (count > 8) cls = 'cluster-md';
+                return L.divIcon({
+                    html: '<div class="cluster-icon ' + cls + '">' + count + '</div>',
+                    className: '',
+                    iconSize: [52, 52],
+                    iconAnchor: [26, 26]
+                });
+            }
+        });
+    }
+
+    var clusterGroup = makeClusterGroup();
+    var plainGroup = L.layerGroup();
+
+    // ── Heatmap layer ────────────────────────────────────────────────────
+    var heatPoints = donors.map(function(d) { return [d.latitude, d.longitude, 0.7]; });
+    var heatLayer = L.heatLayer(heatPoints, {
+        radius: 35, blur: 25, maxZoom: 12,
+        gradient: { 0.2: '#2563eb', 0.4: '#7c3aed', 0.6: '#f59e0b', 0.8: '#ef4444', 1.0: '#dc2626' }
+    });
+
+    // ── Filter state ─────────────────────────────────────────────────────
+    var useCluster = true;
+    var showHeat = false;
+    var availOnly = false;
+    var verifiedOnly = false;
+    var activeBGs = {};
+    ['A+','A-','B+','B-','AB+','AB-','O+','O-'].forEach(function(bg) { activeBGs[bg] = true; });
+    var searchTerm = '';
+
+    function passesFilter(d) {
+        if (!activeBGs[d.bloodgroup]) return false;
+        if (availOnly && !d.is_available) return false;
+        if (verifiedOnly && !d.location_verified) return false;
+        if (searchTerm) {
+            var q = searchTerm.toLowerCase();
+            var haystack = (d.name + ' ' + d.bloodgroup + ' ' + d.zipcode + ' ' + d.address + ' ' + d.username).toLowerCase();
+            if (haystack.indexOf(q) === -1) return false;
+        }
+        return true;
+    }
+
+    function refreshMap() {
+        map.removeLayer(clusterGroup);
+        map.removeLayer(plainGroup);
+        map.removeLayer(heatLayer);
+
+        clusterGroup = makeClusterGroup();
+        plainGroup = L.layerGroup();
+
+        var filteredHeatPts = [];
+        allMarkers.forEach(function(m) {
+            var d = m._donorData;
+            if (!passesFilter(d)) return;
+            if (useCluster) clusterGroup.addLayer(m);
+            else plainGroup.addLayer(m);
+            filteredHeatPts.push([d.latitude, d.longitude, 0.7]);
+        });
+
+        if (useCluster) map.addLayer(clusterGroup);
+        else map.addLayer(plainGroup);
+
+        if (showHeat) {
+            heatLayer = L.heatLayer(filteredHeatPts, {
+                radius: 35, blur: 25, maxZoom: 12,
+                gradient: { 0.2: '#2563eb', 0.4: '#7c3aed', 0.6: '#f59e0b', 0.8: '#ef4444', 1.0: '#dc2626' }
+            });
+            map.addLayer(heatLayer);
+        }
+    }
+
+    refreshMap();
+
+    if (donors.length > 1) {
+        var bounds = L.latLngBounds(donors.map(function(d) { return [d.latitude, d.longitude]; }));
+        map.fitBounds(bounds, { padding: [40, 40] });
+    } else if (donors.length === 1) {
+        map.setView([donors[0].latitude, donors[0].longitude], 10);
+    }
+
+    // ── Controls toggle ──────────────────────────────────────────────────
+    var ctrlPanel = document.getElementById('mapControls');
+    var ctrlBtn = document.getElementById('ctrlToggle');
+    ctrlBtn.addEventListener('click', function() {
+        ctrlPanel.classList.toggle('collapsed');
+        ctrlBtn.querySelector('i').className = ctrlPanel.classList.contains('collapsed')
+            ? 'fas fa-sliders-h' : 'fas fa-times';
+    });
+
+    // ── Blood group chips ────────────────────────────────────────────────
+    var chips = document.querySelectorAll('.bg-chip');
+    for (var i = 0; i < chips.length; i++) {
+        chips[i].addEventListener('click', function() {
+            var bg = this.getAttribute('data-bg');
+            if (activeBGs[bg]) {
+                delete activeBGs[bg];
+                this.classList.remove('active');
+                this.classList.add('inactive');
+            } else {
+                activeBGs[bg] = true;
+                this.classList.add('active');
+                this.classList.remove('inactive');
+            }
+            refreshMap();
+        });
+    }
+
+    // ── Toggle switches ──────────────────────────────────────────────────
+    document.getElementById('toggleCluster').addEventListener('change', function() {
+        useCluster = this.checked;
+        refreshMap();
+    });
+    document.getElementById('toggleHeat').addEventListener('change', function() {
+        showHeat = this.checked;
+        refreshMap();
+    });
+    document.getElementById('toggleAvail').addEventListener('change', function() {
+        availOnly = this.checked;
+        refreshMap();
+    });
+    document.getElementById('toggleVerified').addEventListener('change', function() {
+        verifiedOnly = this.checked;
+        refreshMap();
+    });
+
+    // ── Search ───────────────────────────────────────────────────────────
+    var searchTimeout;
+    document.getElementById('donorSearch').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        var val = this.value;
+        searchTimeout = setTimeout(function() {
+            searchTerm = val;
+            refreshMap();
+        }, 250);
+    });
+
+})();
+
+// Animate coverage bars from data-width attributes
+document.querySelectorAll('.coverage-bar-fill').forEach(function(el) {
+    var w = el.getAttribute('data-width');
+    if (w) { setTimeout(function() { el.style.width = w + '%'; }, 100); }
+});
+</script>
+
+{% endblock content %}

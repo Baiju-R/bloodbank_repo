@@ -1,0 +1,643 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Login - BloodBridge</title>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px) rotate(360deg); opacity: 0; }
+        }
+
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.3);
+            overflow: hidden;
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            animation: slideIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #3498db, #f39c12, #27ae60, #e74c3c, #9b59b6);
+            background-size: 200% 100%;
+            animation: gradient-shift 3s ease-in-out infinite;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            padding: 50px 40px 40px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 30px); }
+        }
+
+        .patient-icon {
+            font-size: 4.5rem;
+            color: white;
+            margin-bottom: 20px;
+            animation: heartbeat 2s ease-in-out infinite;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.05); }
+        }
+
+        .login-header h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-header p {
+            opacity: 0.95;
+            font-size: 1.05rem;
+            margin-bottom: 0;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-body {
+            padding: 45px 40px;
+            position: relative;
+        }
+
+        .welcome-message {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 18px 25px;
+            border-radius: 20px;
+            margin-bottom: 35px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+            animation: fadeInDown 0.6s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-message i {
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.4s; }
+        .form-group:nth-child(2) { animation-delay: 0.5s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .field-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-helper {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 15px;
+            padding: 0 18px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15), 0 8px 25px rgba(52, 152, 219, 0.1);
+            background: #fff;
+        }
+
+        .input-icon {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+            width: 38px;
+            height: 38px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(52, 152, 219, 0.12);
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .input-wrapper:focus-within .input-icon {
+            color: #3498db;
+            transform: scale(1.05);
+        }
+
+        .form-control {
+            border: none;
+            background: transparent;
+            padding: 16px 0;
+            font-size: 1rem;
+            width: 100%;
+            font-weight: 500;
+            box-shadow: none;
+        }
+
+        .form-control:focus {
+            border: none;
+            box-shadow: none;
+            background: transparent;
+            outline: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.15rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(52, 152, 219, 0.4);
+            background: linear-gradient(135deg, #2980b9, #3498db);
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .login-btn i {
+            margin-right: 10px;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            animation: fadeInUp 0.6s ease-out 0.7s both;
+        }
+
+        .signup-link p {
+            margin: 0;
+            color: #5a6c7d;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .signup-link a {
+            color: #3498db;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .signup-link a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3498db;
+            transition: width 0.3s ease;
+        }
+
+        .signup-link a:hover::after {
+            width: 100%;
+        }
+
+        .signup-link a:hover {
+            color: #2980b9;
+        }
+
+        /* Features section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+            animation: fadeInUp 0.6s ease-out 0.8s both;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .feature-item i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .feature-item:nth-child(1) i { color: #3498db; }
+        .feature-item:nth-child(2) i { color: #e74c3c; }
+        .feature-item:nth-child(3) i { color: #27ae60; }
+
+        .feature-item span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+                max-width: none;
+                border-radius: 25px;
+            }
+
+            .login-header {
+                padding: 40px 30px 30px;
+            }
+
+            .login-header h2 {
+                font-size: 1.8rem;
+            }
+
+            .patient-icon {
+                font-size: 3.5rem;
+            }
+
+            .login-body {
+                padding: 35px 30px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .form-control {
+                padding: 14px 18px 14px 50px;
+            }
+        }
+
+        /* Loading animation */
+        .login-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .login-btn.loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 3px solid transparent;
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Alert messages */
+        .alert {
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border: none;
+            font-weight: 500;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Animated particles -->
+    <div class="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 5s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 1.5s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 3.5s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 2.5s;"></div>
+    </div>
+
+    {% include "blood/navbar.html" %}
+
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="patient-icon">
+                    <i class="fas fa-user-injured"></i>
+                </div>
+                <h2>Patient Login</h2>
+                <p>Access your BloodBridge patient account</p>
+            </div>
+            
+            <div class="login-body">
+                <div class="welcome-message">
+                    <i class="fas fa-heartbeat"></i>
+                    Welcome back! Access your medical records and blood requests through BloodBridge.
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST" id="loginForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <div class="field-meta">
+                            <span class="form-label">Username</span>
+                            <small class="form-helper">Provided during patient signup</small>
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" name="username" class="form-control" placeholder="Enter your username" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="field-meta">
+                            <span class="form-label">Password</span>
+                            <small class="form-helper">Keep this confidential</small>
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="login-btn" id="loginButton">
+                        <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                    </button>
+                </form>
+
+                <div style="text-align: center; margin-top: 12px;">
+                    <a href="{% url 'forgot-password' role='patient' %}" style="color: #3498db; font-size: 0.9rem; text-decoration: none; font-weight: 500;">
+                        <i class="fas fa-key"></i> Forgot Password?
+                    </a>
+                </div>
+
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Request Blood</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Track Health</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Secure Access</span>
+                    </div>
+                </div>
+
+                <div class="signup-link">
+                    <p>Don't have an account? <a href="{% url 'patientsignup' %}">Sign up here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "blood/footer.html" %}
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const loginButton = document.getElementById('loginButton');
+            
+            form.addEventListener('submit', function() {
+                loginButton.classList.add('loading');
+                loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            });
+
+            // Input focus effects
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

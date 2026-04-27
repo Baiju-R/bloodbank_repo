@@ -1,0 +1,8 @@
+#!/mnt/c/Users/baiju.ravi/Downloads/25_12_2025-main/25_12_2025-main/.venv/bin/python
+# -*- coding: utf-8 -*-
+import re
+import sys
+from dotenv.__main__ import cli
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(cli())

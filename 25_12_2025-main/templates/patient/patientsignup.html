@@ -1,0 +1,746 @@
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Signup - BloodBridge</title>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ...existing styles from donor signup... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            min-height: 100vh;
+            padding: 30px 0;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-120vh) translateX(80px) rotate(360deg); opacity: 0; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .signup-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.3);
+            overflow: hidden;
+            animation: slideIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .signup-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #3498db, #f39c12, #27ae60, #e74c3c, #9b59b6);
+            background-size: 200% 100%;
+            animation: gradient-shift 3s ease-in-out infinite;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .signup-header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signup-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+            background-size: 25px 25px;
+            animation: moveBackground 15s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(25px, 25px); }
+        }
+
+        .signup-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: bounceIn 1s ease-out;
+            filter: drop-shadow(0 6px 15px rgba(0,0,0,0.3));
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .signup-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .signup-header p {
+            opacity: 0.95;
+            font-weight: 500;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .signup-body {
+            padding: 40px 35px;
+        }
+
+        .form-section {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border-radius: 20px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            animation: fadeInUp 0.6s ease-out both;
+            transition: all 0.3s ease;
+        }
+
+        .form-section:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-section:nth-child(1) { animation-delay: 0.1s; }
+        .form-section:nth-child(2) { animation-delay: 0.2s; }
+        .form-section:nth-child(3) { animation-delay: 0.3s; }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .section-title i {
+            color: #3498db;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            border: 2px solid #ecf0f1;
+            padding: 13px 18px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            background: white;
+            font-weight: 500;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15), 0 4px 15px rgba(52, 152, 219, 0.1);
+            background: white;
+            transform: translateY(-1px);
+        }
+
+        .form-control-file {
+            padding: 10px 0;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%233498db' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+
+        .btn-signup {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: none;
+            padding: 16px 40px;
+            border-radius: 15px;
+            font-weight: 700;
+            color: white;
+            width: 100%;
+            font-size: 1.15rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .btn-signup::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn-signup:hover::before {
+            left: 100%;
+        }
+
+        .btn-signup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(52, 152, 219, 0.4);
+            color: white;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            animation: fadeInUp 0.6s ease-out 0.5s both;
+        }
+
+        .login-link p {
+            margin: 0;
+            color: #5a6c7d;
+            font-weight: 500;
+        }
+
+        .login-link a {
+            color: #3498db;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .login-link a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3498db;
+            transition: width 0.3s ease;
+        }
+
+        .login-link a:hover::after {
+            width: 100%;
+        }
+
+        /* Progress indicator */
+        .progress-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .progress-step::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: 100%;
+            height: 3px;
+            background: #ecf0f1;
+            z-index: 0;
+        }
+
+        .progress-step:first-child::before {
+            display: none;
+        }
+
+        .progress-step-circle {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #ecf0f1;
+            color: #7f8c8d;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active .progress-step-circle {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .progress-step-label {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+
+        .progress-step.active .progress-step-label {
+            color: #3498db;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .signup-body {
+                padding: 30px 20px;
+            }
+
+            .form-section {
+                padding: 20px;
+                margin-bottom: 25px;
+            }
+
+            .section-title {
+                font-size: 1.1rem;
+            }
+
+            .signup-header h2 {
+                font-size: 1.7rem;
+            }
+
+            .signup-icon {
+                font-size: 3rem;
+            }
+
+            .progress-indicator {
+                padding: 0 10px;
+            }
+
+            .progress-step-label {
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Alert animations */
+        .alert {
+            border-radius: 15px;
+            border: none;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-signup.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-signup.loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 3px solid transparent;
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Animated particles -->
+    <div class="particles">
+        <div class="particle" style="left: 5%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 15%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 25%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 35%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 45%; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 55%; animation-delay: 5s;"></div>
+        <div class="particle" style="left: 65%; animation-delay: 1.5s;"></div>
+        <div class="particle" style="left: 75%; animation-delay: 3.5s;"></div>
+        <div class="particle" style="left: 85%; animation-delay: 2.5s;"></div>
+        <div class="particle" style="left: 95%; animation-delay: 4.5s;"></div>
+    </div>
+
+    {% include "blood/navbar.html" %}
+
+    <div class="container">
+        <div class="signup-card">
+            <div class="signup-header">
+                <div class="signup-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2>Join BloodBridge as Patient</h2>
+                <p>Get access to blood services and manage your medical needs</p>
+                {% if from_request %}
+                    <div style="background: linear-gradient(45deg, #e74c3c, #c0392b); padding: 10px; border-radius: 10px; margin-top: 15px;">
+                        <small><i class="fas fa-info-circle"></i> Complete signup to make blood request</small>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="signup-body">
+                <!-- Progress Indicator -->
+                <div class="progress-indicator">
+                    <div class="progress-step active">
+                        <span class="progress-step-circle">1</span>
+                        <span class="progress-step-label">Personal</span>
+                    </div>
+                    <div class="progress-step active">
+                        <span class="progress-step-circle">2</span>
+                        <span class="progress-step-label">Account</span>
+                    </div>
+                    <div class="progress-step active">
+                        <span class="progress-step-circle">3</span>
+                        <span class="progress-step-label">Medical</span>
+                    </div>
+                    <div class="progress-step active">
+                        <span class="progress-step-circle">4</span>
+                        <span class="progress-step-label">Prescription</span>
+                    </div>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data" id="patientSignupForm">
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-user"></i>
+                            Personal Information
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">First Name <span class="required">*</span></label>
+                                    {% render_field userForm.first_name class="form-control" placeholder="Enter first name" required="true" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Last Name <span class="required">*</span></label>
+                                    {% render_field userForm.last_name class="form-control" placeholder="Enter last name" required="true" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Information Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-lock"></i>
+                            Account Information
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Username <span class="required">*</span></label>
+                                    {% render_field userForm.username class="form-control" placeholder="Choose username" required="true" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Password <span class="required">*</span></label>
+                                    {% render_field userForm.password class="form-control" placeholder="Create strong password" required="true" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Information Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-heartbeat"></i>
+                            Medical Information
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Age <span class="required">*</span></label>
+                                    {% render_field patientForm.age class="form-control" placeholder="Your age" required="true" %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Blood Group <span class="required">*</span></label>
+                                    {% render_field patientForm.bloodgroup class="form-control" required="true" %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Mobile Number <span class="required">*</span></label>
+                                    {% render_field patientForm.mobile class="form-control" placeholder="Phone number" required="true" %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Disease/Condition <span class="required">*</span></label>
+                                    {% render_field patientForm.disease class="form-control" placeholder="Medical condition" required="true" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Doctor Name <span class="required">*</span></label>
+                                    {% render_field patientForm.doctorname class="form-control" placeholder="Attending doctor" required="true" %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Address <span class="required">*</span></label>
+                            {% render_field patientForm.address class="form-control" placeholder="Full address" required="true" %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Aadhaar Number <span class="required">*</span></label>
+                                    {% render_field patientForm.aadhaar_number class="form-control" placeholder="123456789012" required="true" %}
+                                    <small class="text-muted">12-digit Aadhaar number for identity verification</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Profile Picture (Optional)</label>
+                                    {% render_field patientForm.profile_pic class="form-control-file" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Doctor Prescription Section (Mandatory) -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-file-prescription"></i>
+                            Doctor's Prescription <span class="required">*</span>
+                        </h4>
+                        <div class="alert alert-info" style="border-radius:12px; border:none; background: linear-gradient(135deg, #d6eaf8, #ebf5fb);">
+                            <i class="fas fa-info-circle"></i>
+                            A doctor's prescription is <strong>mandatory</strong> for patient registration.
+                            This helps verify your medical requirements.
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Upload Prescription <span class="required">*</span></label>
+                            {% render_field patientForm.doctor_prescription class="form-control-file" %}
+                            <small class="text-muted d-block mt-2">
+                                Accepted formats: PDF, JPG, PNG, DOC, DOCX (max 10MB)
+                            </small>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-signup" id="submitBtn">
+                        <i class="fas fa-user-plus"></i> Submit Registration (Pending Admin Approval)
+                    </button>
+
+                    <div class="alert alert-warning mt-3" style="border-radius:12px; border:none; background:linear-gradient(135deg, #fef9e7, #fdf2e9); color:#7d6608;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Your account will be reviewed by an admin before activation. You will receive a welcome message once approved.
+                    </div>
+                </form>
+
+                <div class="login-link">
+                    <p>Already have an account? <a href="{% url 'patientlogin' %}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "blood/footer.html" %}
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('patientSignupForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function() {
+                submitBtn.classList.add('loading');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+            });
+
+            // Input animations
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.01)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+
+            // Form section animations on scroll
+            const sections = document.querySelectorAll('.form-section');
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

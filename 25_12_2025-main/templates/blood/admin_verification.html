@@ -1,0 +1,106 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-3"><i class="fas fa-shield-check"></i> Verification Badges</h3>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header"><strong>Update Donor Badge</strong></div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="entity" value="donor">
+            <div class="form-group">
+              <label>Donor</label>
+              <select class="form-control" name="object_id" required>
+                {% for donor in donors %}<option value="{{ donor.id }}">{{ donor.get_name }} ({{ donor.bloodgroup }})</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group"><label>Badge Name</label><input class="form-control" name="badge_name" value="Verified Identity" maxlength="60"></div>
+            <div class="form-group"><label>Hospital</label><input class="form-control" name="hospital_name" maxlength="120"></div>
+            <div class="form-group"><label>Trust Score (0-100)</label><input class="form-control" type="number" name="trust_score" min="0" max="100" value="50"></div>
+            <div class="form-group"><label>Notes</label><input class="form-control" name="notes" maxlength="255"></div>
+            <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="is_verified" id="donorVerified"><label class="form-check-label" for="donorVerified">Mark as verified</label></div>
+            <button type="submit" class="btn btn-primary">Save Donor Badge</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header"><strong>Update Patient Badge</strong></div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="entity" value="patient">
+            <div class="form-group">
+              <label>Patient</label>
+              <select class="form-control" name="object_id" required>
+                {% for patient in patients %}<option value="{{ patient.id }}">{{ patient.get_name }} ({{ patient.bloodgroup }})</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group"><label>Badge Name</label><input class="form-control" name="badge_name" value="Verified Identity" maxlength="60"></div>
+            <div class="form-group"><label>Hospital</label><input class="form-control" name="hospital_name" maxlength="120"></div>
+            <div class="form-group"><label>Trust Score (0-100)</label><input class="form-control" type="number" name="trust_score" min="0" max="100" value="50"></div>
+            <div class="form-group"><label>Notes</label><input class="form-control" name="notes" maxlength="255"></div>
+            <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="is_verified" id="patientVerified"><label class="form-check-label" for="patientVerified">Mark as verified</label></div>
+            <button type="submit" class="btn btn-primary">Save Patient Badge</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header"><strong>Donor Badges</strong></div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Donor</th><th>Badge</th><th>Score</th><th>Verified</th></tr></thead>
+            <tbody>
+              {% for badge in donor_badges %}
+                <tr>
+                  <td>{{ badge.donor.get_name }}</td>
+                  <td>{{ badge.badge_name }}</td>
+                  <td>{{ badge.trust_score }}</td>
+                  <td>{% if badge.is_verified %}Yes{% else %}No{% endif %}</td>
+                </tr>
+              {% empty %}<tr><td colspan="4" class="text-center text-muted">No donor badges yet.</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header"><strong>Patient Badges</strong></div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Patient</th><th>Badge</th><th>Score</th><th>Verified</th></tr></thead>
+            <tbody>
+              {% for badge in patient_badges %}
+                <tr>
+                  <td>{{ badge.patient.get_name }}</td>
+                  <td>{{ badge.badge_name }}</td>
+                  <td>{{ badge.trust_score }}</td>
+                  <td>{% if badge.is_verified %}Yes{% else %}No{% endif %}</td>
+                </tr>
+              {% empty %}<tr><td colspan="4" class="text-center text-muted">No patient badges yet.</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

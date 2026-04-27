@@ -1,0 +1,129 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+
+<style>
+    .audit-shell { padding: 20px 0; }
+    .audit-card { background:#fff; border-radius:16px; border:1px solid #e5e7eb; box-shadow:0 12px 30px rgba(0,0,0,0.08); }
+    .audit-head { padding:16px 18px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .audit-body { padding:16px 18px; }
+    .audit-filter { display:flex; gap:10px; flex-wrap:wrap; }
+    .audit-filter select, .audit-filter button { border-radius:10px; }
+    .badge-action { font-weight:700; border-radius:999px; padding:4px 10px; font-size:0.78rem; }
+    .a-approve { background:#dcfce7; color:#166534; }
+    .a-reject { background:#fee2e2; color:#991b1b; }
+    .mono { font-family:'Courier New', monospace; font-size:0.9rem; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:14px; }
+    .kpi { border:1px solid #e5e7eb; border-radius:10px; background:#f8fafc; padding:10px; }
+    .kpi .lbl { color:#64748b; font-size:0.75rem; text-transform:uppercase; font-weight:700; }
+    .kpi .val { color:#0f172a; font-size:1.15rem; font-weight:800; }
+    .small-note { color:#64748b; font-size:0.8rem; }
+    .payload-box { max-width:350px; white-space:pre-wrap; word-break:break-word; font-size:0.8rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px; }
+</style>
+
+<div class="audit-shell">
+    <div class="audit-card">
+        <div class="audit-head">
+            <div>
+                <h4 style="margin:0;"><i class="fas fa-clipboard-check"></i> Action Audit Logs</h4>
+                <small style="color:#6b7280;">Who approved/rejected what and when</small>
+            </div>
+            <form method="get" class="audit-filter">
+                <select name="action" class="form-control">
+                    <option value="">All Actions</option>
+                    {% for value, label in action_choices %}
+                        <option value="{{ value }}" {% if action_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="entity" class="form-control">
+                    <option value="">All Entities</option>
+                    {% for value, label in entity_choices %}
+                        <option value="{{ value }}" {% if entity_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="actor" value="{{ actor_filter }}" class="form-control" placeholder="Actor username" />
+                <input type="number" name="entity_id" value="{{ entity_id_filter }}" class="form-control" placeholder="Entity ID" style="max-width:120px;" />
+                <input type="date" name="date_from" value="{{ date_from_value }}" class="form-control" />
+                <input type="date" name="date_to" value="{{ date_to_value }}" class="form-control" />
+                <button class="btn btn-primary" type="submit">Filter</button>
+            </form>
+        </div>
+        <div class="audit-body">
+            <div class="kpi-grid">
+                <div class="kpi"><div class="lbl">Total Events</div><div class="val">{{ summary.total }}</div></div>
+                <div class="kpi"><div class="lbl">Approvals</div><div class="val">{{ summary.approve_actions }}</div></div>
+                <div class="kpi"><div class="lbl">Rejections</div><div class="val">{{ summary.reject_actions }}</div></div>
+                <div class="kpi"><div class="lbl">Last 24h</div><div class="val">{{ summary.last_24h }}</div></div>
+                <div class="kpi"><div class="lbl">Last 7d</div><div class="val">{{ summary.last_7d }}</div></div>
+            </div>
+
+            {% if top_actors %}
+                <div class="small-note" style="margin-bottom:10px;">
+                    <strong>Top actors:</strong>
+                    {% for actor in top_actors %}
+                        {{ actor.actor_username }} ({{ actor.total }}){% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>When</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Blood</th>
+                        <th>Status</th>
+                        <th>Actor</th>
+                        <th>Notes</th>
+                        <th>Payload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in page_obj.object_list %}
+                        <tr>
+                            <td class="mono">{{ row.created_at|date:"d M Y H:i" }}</td>
+                            <td>
+                                <span class="badge-action {% if 'APPROVE' in row.action %}a-approve{% else %}a-reject{% endif %}">{{ row.get_action_display }}</span>
+                            </td>
+                            <td>{{ row.entity_type }} #{{ row.entity_id }}</td>
+                            <td>{{ row.bloodgroup }} • {{ row.units }} ml</td>
+                            <td>{{ row.status_before }} → {{ row.status_after }}</td>
+                            <td>{{ row.actor_username|default:'system' }} <small>({{ row.actor_role }})</small></td>
+                            <td>{{ row.notes|default:'-' }}</td>
+                            <td>
+                                {% if row.payload %}
+                                    <details>
+                                        <summary>View</summary>
+                                        <div class="payload-box">{{ row.payload }}</div>
+                                    </details>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="8" class="text-center text-muted">No audit logs found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if page_obj.has_other_pages %}
+            <nav>
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&action={{ action_filter }}&entity={{ entity_filter }}&actor={{ actor_filter }}&entity_id={{ entity_id_filter }}&date_from={{ date_from_value }}&date_to={{ date_to_value }}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&action={{ action_filter }}&entity={{ entity_filter }}&actor={{ actor_filter }}&entity_id={{ entity_id_filter }}&date_from={{ date_from_value }}&date_to={{ date_to_value }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

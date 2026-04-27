@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Portal - BloodBridge</title>
+    <meta name="theme-color" content="#e74c3c">
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+    <link rel="stylesheet" href="{% static 'css/responsive-enhancements.css' %}">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 15px 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            font-weight: 700 !important;
+            font-size: 1.4rem !important;
+            color: white !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-brand .fas {
+            color: #e74c3c;
+            font-size: 1.5rem;
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.15); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+        }
+        
+        .nav-link {
+            color: white !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-radius: 25px;
+            padding: 10px 20px !important;
+            margin: 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .donor-sidebar {
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            min-height: calc(100vh - 70px);
+            padding: 30px 0;
+            position: fixed;
+            width: 280px;
+            left: -280px;
+            top: 70px;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 999;
+            box-shadow: 4px 0 25px rgba(0,0,0,0.2);
+            overflow-y: auto;
+        }
+        
+        .donor-sidebar.active {
+            left: 0;
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 35px;
+            padding: 0 25px;
+            position: relative;
+        }
+        
+        .sidebar-header::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            border-radius: 2px;
+        }
+        
+        .sidebar-header h4 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .sidebar-header .fas {
+            color: #e74c3c;
+            font-size: 1.4rem;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-menu li {
+            margin: 8px 20px;
+            position: relative;
+        }
+        
+        .sidebar-menu a {
+            color: #ecf0f1;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar-menu a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .sidebar-menu a:hover::before {
+            left: 100%;
+        }
+        
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: translateX(8px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .sidebar-menu a i {
+            font-size: 1.2rem;
+            width: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-menu a:hover i {
+            transform: scale(1.2);
+        }
+        
+        .sidebar-toggle {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            font-size: 1.3rem;
+            padding: 8px 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .sidebar-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        
+        .main-content {
+            margin-top: 90px;
+            min-height: calc(100vh - 90px);
+            transition: all 0.4s ease;
+            padding: 0;
+        }
+        
+        @media (min-width: 992px) {
+            .donor-sidebar {
+                position: fixed;
+                left: 0;
+                width: 280px;
+            }
+            
+            .main-content {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+            }
+            
+            .sidebar-toggle {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 991px) {
+            .donor-sidebar {
+                left: -280px;
+            }
+            
+            .donor-sidebar.active {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+        
+        /* Sidebar scrollbar */
+        .donor-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .donor-sidebar::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .donor-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+        
+        .donor-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Backdrop overlay for mobile */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <button class="sidebar-toggle d-lg-none" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-heart"></i>
+                <span>BloodBridge - Donor</span>
+            </a>
+            
+            <div class="ml-auto d-flex align-items-center">
+                <a class="nav-link" href="{% url 'donor-dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="d-none d-sm-inline">Dashboard</span>
+                </a>
+                <form method="post" action="/logout/" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link btn btn-link" style="cursor:pointer">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="d-none d-sm-inline">Logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="donor-sidebar" id="donorSidebar">
+        <div class="sidebar-header">
+            <h4>
+                <i class="fas fa-user-circle"></i>
+                Donor Menu
+            </h4>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{% url 'donor-dashboard' %}" class="{% if request.path == '/donor/donor-dashboard/' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'donate-blood' %}" class="{% if request.path == '/donor/donate-blood/' %}active{% endif %}">
+                    <i class="fas fa-hand-holding-medical"></i>
+                    <span>Donate Blood</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'donor-history' %}" class="{% if request.path == '/donor/my-donations/' %}active{% endif %}">
+                    <i class="fas fa-history"></i>
+                    <span>Donation History</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'donor-request-blood' %}" class="{% if request.path == '/donor/make-request/' %}active{% endif %}">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Request Blood</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'donor-request-history' %}" class="{% if request.path == '/donor/request-history/' %}active{% endif %}">
+                    <i class="fas fa-list-alt"></i>
+                    <span>Request History</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'donor-appointments' %}" class="{% if request.path == '/donor/appointments/' %}active{% endif %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'donor-feedback' %}" class="{% if request.path == '/donor/feedback/' %}active{% endif %}">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>Feedback</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'donor-medical-reports' %}" class="{% if request.path == '/donor/medical-reports/' %}active{% endif %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>Medical Reports</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        {% block content %}{% endblock content %}
+    </main>
+    
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('donorSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
+            sidebar.classList.toggle('active');
+            backdrop.classList.toggle('active');
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('donorSidebar');
+            const toggle = document.querySelector('.sidebar-toggle');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
+            if (window.innerWidth < 992) {
+                if (!sidebar.contains(e.target) && 
+                    !toggle?.contains(e.target) && 
+                    sidebar.classList.contains('active') &&
+                    !e.target.closest('.sidebar-menu')) {
+                    sidebar.classList.remove('active');
+                    backdrop.classList.remove('active');
+                }
+            }
+        });
+        
+        // Set active menu item based on current path
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const menuLinks = document.querySelectorAll('.sidebar-menu a');
+            
+            menuLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && currentPath.includes(href) && href !== '/') {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js').catch(function() {});
+            });
+        }
+    </script>
+
+    {% include 'blood/faq_button.html' %}
+</body>
+</html>

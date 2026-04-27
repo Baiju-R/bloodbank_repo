@@ -1,0 +1,28 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "BloodBridgeSNSSMS",
+            "Effect": "Allow",
+            "Action": [
+                "sns:Publish",
+                "sns:GetSMSAttributes",
+                "sns:SetSMSAttributes",
+                "sns:CheckIfPhoneNumberIsOptedOut"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "BloodBridgeSNSSandbox",
+            "Effect": "Allow",
+            "Action": [
+                "sns:CreateSMSSandboxPhoneNumber",
+                "sns:VerifySMSSandboxPhoneNumber",
+                "sns:DeleteSMSSandboxPhoneNumber",
+                "sns:ListSMSSandboxPhoneNumbers",
+                "sns:GetSMSSandboxAccountStatus"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

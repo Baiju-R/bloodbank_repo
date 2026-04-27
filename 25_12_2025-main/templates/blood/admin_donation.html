@@ -1,0 +1,437 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+{% load widget_tweaks %}
+{%load static%}
+
+<style>
+    /* Enhanced Admin Donation Styles */
+    .donation-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .dashboard-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .table-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-weight: 600;
+        position: relative;
+        font-size: 1.8rem;
+    }
+    
+    .table-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+        border-radius: 2px;
+    }
+    
+    .enhanced-table {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        border: none !important;
+    }
+    
+    .enhanced-table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 15px 12px;
+        border: none;
+        font-size: 0.9rem;
+    }
+    
+    .enhanced-table tbody tr {
+        transition: all 0.3s ease;
+        border: none;
+    }
+    
+    .enhanced-table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .enhanced-table tbody td {
+        padding: 15px 12px;
+        vertical-align: middle;
+        border: 1px solid #ecf0f1;
+        font-weight: 500;
+    }
+    
+    .enhanced-table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .status-label {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .status-approved {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        color: white;
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-pending {
+        background: linear-gradient(45deg, #f39c12, #e67e22);
+        color: white;
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+    
+    .status-rejected {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .action-btn {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: none;
+        margin: 2px;
+        min-width: 80px;
+    }
+    
+    .btn-approve {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        color: white;
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    }
+    
+    .btn-approve:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        color: white;
+    }
+    
+    .btn-reject {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .btn-reject:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        color: white;
+    }
+    
+    .btn-approve a, .btn-reject a {
+        color: white !important;
+        text-decoration: none !important;
+    }
+    
+    .blood-group-badge {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-block;
+        min-width: 45px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
+    }
+    
+    .unit-display {
+        font-weight: 700;
+        color: #27ae60;
+        font-size: 1.1rem;
+    }
+    
+    .donor-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .age-display {
+        font-weight: 600;
+        color: #7f8c8d;
+    }
+    
+    .date-display {
+        color: #5a6c7d;
+        font-weight: 500;
+    }
+    
+    .disease-display {
+        color: #8e44ad;
+        font-weight: 500;
+    }
+    
+    /* Statistics Cards */
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+    
+    .stats-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: #667eea;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #2c3e50;
+    }
+    
+    .stats-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #7f8c8d;
+    }
+    
+    .stats-sub {
+        font-size: 0.8rem;
+        color: #bdc3c7;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .table-container {
+            padding: 20px 15px;
+        }
+        
+        .enhanced-table {
+            font-size: 0.85rem;
+        }
+        
+        .enhanced-table thead th,
+        .enhanced-table tbody td {
+            padding: 10px 8px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            min-width: 70px;
+        }
+        
+        .stats-card {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+
+<div class="donation-dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-hand-holding-heart"></i> Blood Donation Management</h1>
+            <p>Monitor and Manage Donation Requests</p>
+        </div>
+
+        <!-- Statistics Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card total">
+                    <div class="stats-icon">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                    <div class="stats-number">{{ total_donations }}</div>
+                    <div class="stats-label">Total Donations</div>
+                    <div class="stats-sub">All Time Records</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card pending">
+                    <div class="stats-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stats-number">{{ pending_donations }}</div>
+                    <div class="stats-label">Pending Donations</div>
+                    <div class="stats-sub">Awaiting Review</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card approved">
+                    <div class="stats-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stats-number">{{ approved_donations }}</div>
+                    <div class="stats-label">Approved Donations</div>
+                    <div class="stats-sub">Added to Stock</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card rejected">
+                    <div class="stats-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stats-number">{{ rejected_donations }}</div>
+                    <div class="stats-label">Rejected Donations</div>
+                    <div class="stats-sub">Not Added</div>
+                </div>
+            </div>
+        </div>
+
+        {% if donations %}
+        <div class="table-container">
+            <h4 class="table-title">
+                <i class="fas fa-list-alt"></i> Blood Donation Details ({{ total_donations }} total)
+            </h4>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="white-space: pre-line;">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="table-responsive">
+                <table class="table enhanced-table">
+                    <thead>
+                        <tr>
+                            <th scope="col"><i class="fas fa-hashtag"></i> ID</th>
+                            <th scope="col"><i class="fas fa-user"></i> Donor Name</th>
+                            <th scope="col"><i class="fas fa-stethoscope"></i> Disease</th>
+                            <th scope="col"><i class="fas fa-calendar-alt"></i> Age</th>
+                            <th scope="col"><i class="fas fa-tint"></i> Blood Group</th>
+                            <th scope="col"><i class="fas fa-flask"></i> Unit</th>
+                            <th scope="col"><i class="fas fa-clock"></i> Request Date</th>
+                            <th scope="col"><i class="fas fa-info-circle"></i> Status</th>
+                            <th scope="col"><i class="fas fa-cogs"></i> Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for donation in donations %}
+                        <tr>
+                            <td style="font-weight: 700; color: #667eea; font-family: monospace;">#{{ donation.id }}</td>
+                            <td class="donor-name">{{ donation.donor.get_name }}</td>
+                            <td class="disease-display">{{ donation.disease|default:"None" }}</td>
+                            <td class="age-display">{{ donation.age }} years</td>
+                            <td><span class="blood-group-badge">{{ donation.bloodgroup }}</span></td>
+                            <td class="unit-display">{{ donation.unit }} ml</td>
+                            <td class="date-display">{{ donation.date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if donation.status == 'Pending' %}
+                                    <span class="status-label status-pending">
+                                        <i class="fas fa-clock"></i> {{ donation.status }}
+                                    </span>
+                                {% elif donation.status == 'Approved' %}
+                                    <span class="status-label status-approved">
+                                        <i class="fas fa-check-circle"></i> {{ donation.status }}
+                                    </span>
+                                {% else %}
+                                    <span class="status-label status-rejected">
+                                        <i class="fas fa-times-circle"></i> {{ donation.status }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if donation.status == 'Pending' %}
+                                    <div class="action-buttons">
+                                        <form method="post" action="{% url 'approve-donation' donation.id %}" style="display:inline; margin:0;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn action-btn btn-approve" onclick="return confirm('Are you sure you want to APPROVE this donation? This will add {{ donation.unit }}ml of {{ donation.bloodgroup }} blood to stock.')">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'reject-donation' donation.id %}" style="display:inline; margin:0;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn action-btn btn-reject" onclick="return confirm('Are you sure you want to REJECT this donation? No blood will be added to stock.')">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% elif donation.status == 'Approved' %}
+                                    <span class="status-label status-approved">
+                                        <i class="fas fa-plus-circle"></i> +{{ donation.unit }}ml Added To Stock
+                                    </span>
+                                {% else %}
+                                    <span class="status-label status-rejected">
+                                        <i class="fas fa-ban"></i> 0ml Added To Stock
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="table-container">
+            <div class="no-donation-message" style="text-align: center; padding: 60px 20px; color: #7f8c8d; background: #f8f9fa; border-radius: 15px; margin-top: 30px;">
+                <i class="fas fa-heart" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.6; color: #e74c3c;"></i>
+                <h4 style="margin-bottom: 15px; color: #2c3e50;">No Blood Donations Yet</h4>
+                <p style="font-size: 1.1rem; margin-bottom: 25px;">No donors have submitted donation requests yet.</p>
+                <a href="/admin-donor/" style="background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-users"></i> View Donors
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}

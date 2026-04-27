@@ -1,0 +1,100 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    .verify-page { max-width: 700px; margin: 30px auto; }
+    .verify-card {
+        background: #fff; border-radius: 12px; padding: 28px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .verify-card h3 { font-size: 1.3rem; font-weight: 700; color: #2c3e50; margin-bottom: 20px; }
+    .detail-row { display: flex; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.92rem; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { width: 140px; font-weight: 600; color: #6c757d; flex-shrink: 0; }
+    .detail-value { color: #2c3e50; }
+    .detail-value a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+    .detail-value a:hover { text-decoration: underline; }
+    .badge-blood {
+        background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 6px;
+        font-weight: 600; font-size: 0.85rem;
+    }
+    .actions-bar { display: flex; gap: 10px; margin-top: 24px; }
+    .btn-action {
+        padding: 8px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
+        border: none; color: #fff; cursor: pointer;
+    }
+    .btn-action.approve { background: #10b981; }
+    .btn-action.approve:hover { background: #059669; }
+    .btn-action.reject { background: #ef4444; }
+    .btn-action.reject:hover { background: #dc2626; }
+    .btn-action.back { background: #6b7280; text-decoration: none; display: inline-block; }
+    .btn-action.back:hover { background: #4b5563; color: #fff; }
+    .reject-reason { display: none; margin-top: 14px; }
+    .reject-reason textarea {
+        width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px;
+        font-size: 0.9rem; resize: vertical; min-height: 60px;
+    }
+    .reject-reason .btn-confirm { margin-top: 8px; }
+</style>
+
+<div class="verify-page">
+    <div class="verify-card">
+        <h3><i class="fas fa-file-medical" style="color:#e67e22; margin-right:8px"></i> Verify Medical Report</h3>
+
+        <div class="detail-row">
+            <div class="detail-label">Donor</div>
+            <div class="detail-value">{{ report.donor.get_name }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Blood Group</div>
+            <div class="detail-value"><span class="badge-blood">{{ report.donor.bloodgroup }}</span></div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Phone</div>
+            <div class="detail-value">{{ report.donor.mobile }}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">File</div>
+            <div class="detail-value"><a href="{{ report.document.url }}" target="_blank"><i class="fas fa-download"></i> {{ report.document_name }}</a></div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Uploaded</div>
+            <div class="detail-value">{{ report.uploaded_at|date:"d M Y, H:i" }}</div>
+        </div>
+        {% if report.notes %}
+        <div class="detail-row">
+            <div class="detail-label">Notes</div>
+            <div class="detail-value">{{ report.notes }}</div>
+        </div>
+        {% endif %}
+        <div class="detail-row">
+            <div class="detail-label">Expires</div>
+            <div class="detail-value">{{ report.expiry_date|date:"d M Y" }}{% if report.is_expired %} <span style="color:#ef4444; font-weight:600">(Expired)</span>{% endif %}</div>
+        </div>
+
+        <div class="actions-bar">
+            <form method="post" id="verify-form" style="display:inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify">
+                <button type="submit" class="btn-action approve"><i class="fas fa-check"></i> Verify Report</button>
+            </form>
+            <button type="button" class="btn-action reject" onclick="document.getElementById('reject-box').style.display='block'; this.style.display='none'">
+                <i class="fas fa-times"></i> Reject
+            </button>
+            <a href="{% url 'admin-pending-approvals' %}" class="btn-action back"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+
+        <div class="reject-reason" id="reject-box">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <label style="font-weight:600; font-size:0.9rem; color:#6c757d">Rejection reason:</label>
+                <textarea name="rejection_reason" placeholder="Explain why this report is being rejected..."></textarea>
+                <button type="submit" class="btn-action reject btn-confirm"><i class="fas fa-trash"></i> Confirm Rejection</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      JAVA_OPTS: "-Xmx512m -Xms512m"
+      JENKINS_OPTS: "--prefix=/jenkins"
+    volumes:
+      # Jenkins home directory
+      - jenkins_home:/var/jenkins_home
+      # Docker socket for Docker-in-Docker (DinD)
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - jenkins-network
+
+  # Optional: Docker-in-Docker for building images
+  docker-dind:
+    image: docker:24-dind
+    restart: unless-stopped
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - docker_certs_ca:/certs/ca
+      - docker_certs_client:/certs/client
+      - docker_data:/var/lib/docker
+    networks:
+      - jenkins-network
+
+volumes:
+  jenkins_home:
+  docker_certs_ca:
+  docker_certs_client:
+  docker_data:
+
+networks:
+  jenkins-network:
+    driver: bridge

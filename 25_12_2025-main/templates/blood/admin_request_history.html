@@ -1,0 +1,487 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+{% load widget_tweaks %}
+{% load static %}
+{% load math_filters %}
+
+<style>
+    /* Enhanced Admin Request History Styles */
+    .request-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .dashboard-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .table-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-weight: 600;
+        position: relative;
+        font-size: 1.8rem;
+    }
+    
+    .table-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+        border-radius: 2px;
+    }
+    
+    .alert-message {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 30px;
+        font-weight: 600;
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .enhanced-table {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        border: none !important;
+    }
+    
+    .enhanced-table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 15px 12px;
+        border: none;
+        font-size: 0.9rem;
+    }
+    
+    .enhanced-table tbody tr {
+        transition: all 0.3s ease;
+        border: none;
+    }
+    
+    .enhanced-table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .enhanced-table tbody td {
+        padding: 15px 12px;
+        vertical-align: middle;
+        border: 1px solid #ecf0f1;
+        font-weight: 500;
+    }
+    
+    .enhanced-table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .status-label {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .status-approved {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        color: white;
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-rejected {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .stock-status {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        text-align: center;
+    }
+    
+    .stock-deducted {
+        background: linear-gradient(45deg, #f39c12, #e67e22);
+        color: white;
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+    
+    .stock-no-change {
+        background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+        color: white;
+        box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+    }
+
+    /* Efficiency gauge */
+    .eff-gauge {
+        position: relative; width: 52px; height: 52px; margin: 0 auto;
+    }
+    .eff-gauge-svg {
+        width: 52px; height: 52px; transform: rotate(-90deg);
+    }
+    .eff-gauge-label {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        font-size: 0.72rem; font-weight: 700;
+    }
+    .eff-high-ring  { stroke: #27ae60; }
+    .eff-medium-ring { stroke: #f39c12; }
+    .eff-low-ring   { stroke: #e74c3c; }
+    .eff-high-text  { color: #27ae60; }
+    .eff-medium-text { color: #f39c12; }
+    .eff-low-text   { color: #e74c3c; }
+    
+    .blood-group-badge {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-block;
+        min-width: 45px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
+    }
+    
+    .patient-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+    
+    .age-display {
+        font-weight: 600;
+        color: #7f8c8d;
+        font-size: 1rem;
+    }
+    
+    .reason-display {
+        color: #8e44ad;
+        font-weight: 500;
+        background: #f8f9fa;
+        padding: 4px 8px;
+        border-radius: 10px;
+        border-left: 3px solid #8e44ad;
+    }
+    
+    .unit-display {
+        font-weight: 700;
+        color: #27ae60;
+        font-size: 1.1rem;
+    }
+    
+    .date-display {
+        color: #5a6c7d;
+        font-weight: 500;
+    }
+    
+    /* Statistics Cards Styles */
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+    
+    .stats-card.approved::before { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+    .stats-card.rejected::before { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+    .stats-card.total::before { background: linear-gradient(90deg, #3498db, #2980b9); }
+    .stats-card.efficiency::before { background: linear-gradient(90deg, #f39c12, #e67e22); }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stats-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .stats-card.approved .stats-icon { color: #27ae60; }
+    .stats-card.rejected .stats-icon { color: #e74c3c; }
+    .stats-card.total .stats-icon { color: #3498db; }
+    .stats-card.efficiency .stats-icon { color: #f39c12; }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #2c3e50;
+    }
+    
+    .stats-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    .stats-sub {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+    }
+    
+    .request-id {
+        font-weight: 700;
+        color: #667eea;
+        font-family: monospace;
+    }
+    
+    .requester-info .badge {
+        font-size: 0.75rem;
+        padding: 5px 8px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .table-container {
+            padding: 20px 15px;
+        }
+        
+        .enhanced-table {
+            font-size: 0.85rem;
+        }
+        
+        .enhanced-table thead th,
+        .enhanced-table tbody td {
+            padding: 10px 8px;
+        }
+        
+        .status-label, .stock-status {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            min-width: 70px;
+        }
+    }
+</style>
+
+<div class="request-dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-history"></i> Blood Request History</h1>
+            <p>Track and Monitor Blood Request Records</p>
+        </div>
+
+        <!-- Statistics Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card approved">
+                    <div class="stats-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stats-number">{{ approved_count }}</div>
+                    <div class="stats-label">Approved Requests</div>
+                    <div class="stats-sub">{{ total_approved_units }}ml Dispensed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card rejected">
+                    <div class="stats-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stats-number">{{ rejected_count }}</div>
+                    <div class="stats-label">Rejected Requests</div>
+                    <div class="stats-sub">{{ total_rejected_units }}ml Not Dispensed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card total">
+                    <div class="stats-icon">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                    <div class="stats-number">{{ total_processed }}</div>
+                    <div class="stats-label">Total Processed</div>
+                    <div class="stats-sub">All Time Records</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card efficiency">
+                    <div class="stats-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stats-number">
+                        {{ approval_rate }}%
+                    </div>
+                    <div class="stats-label">Approval Rate</div>
+                    <div class="stats-sub">Success Ratio</div>
+                </div>
+            </div>
+        </div>
+
+        {% if blood_requests %}
+        <div class="table-container">
+            <h4 class="table-title">
+                <i class="fas fa-clipboard-list"></i> Complete Request History
+            </h4>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="white-space: pre-line;">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="table-responsive">
+                <table class="table enhanced-table">
+                    <thead>
+                        <tr>
+                            <th scope="col"><i class="fas fa-hashtag"></i> ID</th>
+                            <th scope="col"><i class="fas fa-user"></i> Patient Name</th>
+                            <th scope="col"><i class="fas fa-calendar-alt"></i> Age</th>
+                            <th scope="col"><i class="fas fa-stethoscope"></i> Reason</th>
+                            <th scope="col"><i class="fas fa-tint"></i> Blood Group</th>
+                            <th scope="col"><i class="fas fa-flask"></i> Unit (ml)</th>
+                            <th scope="col"><i class="fas fa-clock"></i> Date</th>
+                            <th scope="col"><i class="fas fa-user-tag"></i> Requested By</th>
+                            <th scope="col"><i class="fas fa-info-circle"></i> Status</th>
+                            <th scope="col"><i class="fas fa-chart-line"></i> Efficiency</th>
+                            <th scope="col"><i class="fas fa-warehouse"></i> Stock Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for blood_request in blood_requests %}
+                        <tr>
+                            <td class="request-id">#{{ blood_request.id }}</td>
+                            <td class="patient-name">{{ blood_request.patient_name }}</td>
+                            <td class="age-display">{{ blood_request.patient_age }} years</td>
+                            <td class="reason-display">{{ blood_request.reason|truncatechars:30 }}</td>
+                            <td><span class="blood-group-badge">{{ blood_request.bloodgroup }}</span></td>
+                            <td class="unit-display">{{ blood_request.unit }} ml</td>
+                            <td class="date-display">{{ blood_request.date|date:"M d, Y" }}</td>
+                            <td class="requester-info">
+                                {% if blood_request.patient %}
+                                    <span class="badge badge-info">
+                                        <i class="fas fa-user-injured"></i> {{ blood_request.patient.get_name }}
+                                    </span>
+                                {% elif blood_request.request_by_donor %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-heart"></i> {{ blood_request.request_by_donor.get_name }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-secondary">
+                                        <i class="fas fa-question"></i> Unknown
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if blood_request.status == 'Approved' %}
+                                    <span class="status-label status-approved">
+                                        <i class="fas fa-check-circle"></i> Approved
+                                    </span>
+                                {% else %}
+                                    <span class="status-label status-rejected">
+                                        <i class="fas fa-times-circle"></i> Rejected
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                <div class="eff-gauge">
+                                    <svg viewBox="0 0 36 36" class="eff-gauge-svg">
+                                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#eee" stroke-width="3"/>
+                                        <circle cx="18" cy="18" r="15.9" fill="none"
+                                            class="eff-ring {{ blood_request.efficiency_css }}-ring"
+                                            stroke-width="3" stroke-dasharray="{{ blood_request.efficiency_score|floatformat:0 }}, 100"
+                                            stroke-linecap="round"/>
+                                    </svg>
+                                    <span class="eff-gauge-label {{ blood_request.efficiency_css }}-text">
+                                        {{ blood_request.efficiency_score|floatformat:0 }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if blood_request.status == 'Approved' %}
+                                    <span class="stock-status stock-deducted">
+                                        <i class="fas fa-minus-circle"></i> -{{ blood_request.unit }}ml
+                                    </span>
+                                {% else %}
+                                    <span class="stock-status stock-no-change">
+                                        <i class="fas fa-ban"></i> No Change
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="table-container">
+            <div class="no-request-message">
+                <i class="fas fa-history" style="font-size: 3rem; margin-bottom: 20px; display: block;"></i>
+                <h4>No Request History Available</h4>
+                <p>No blood requests have been processed yet.</p>
+                <a href="{% url 'admin-request' %}" class="btn btn-primary mt-3">
+                    <i class="fas fa-clipboard-list"></i> Check Pending Requests
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}

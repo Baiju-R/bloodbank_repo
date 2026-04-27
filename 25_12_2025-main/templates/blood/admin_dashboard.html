@@ -1,0 +1,248 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+
+<style>
+    .admin-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+
+    .dashboard-header {
+        text-align: center;
+        color: #fff;
+        margin-bottom: 24px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .dashboard-header p {
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+
+    .section-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+    .section-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 14px;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 12px;
+    }
+
+    .kpi-card {
+        border: 1px solid #e8edf7;
+        border-radius: 12px;
+        padding: 14px;
+        background: #fbfcff;
+    }
+
+    .kpi-label {
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6b7c93;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .kpi-value {
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: #1f2d3d;
+        line-height: 1;
+    }
+
+    .kpi-note {
+        font-size: 0.82rem;
+        color: #7f8c8d;
+        margin-top: 6px;
+    }
+
+    .stock-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+
+    .stock-item {
+        border: 1px solid #e8edf7;
+        border-radius: 12px;
+        text-align: center;
+        padding: 12px 10px;
+        background: #fbfcff;
+    }
+
+    .stock-group {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 4px;
+    }
+
+    .stock-unit {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #c0392b;
+    }
+
+    .stock-unit-label {
+        font-size: 0.75rem;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+    }
+
+    .dashboard-action {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 12px;
+        padding: 11px 12px;
+        font-weight: 700;
+        text-decoration: none;
+        border: 1px solid #dfe6f4;
+        color: #2c3e50;
+        background: #fff;
+    }
+
+    .dashboard-action:hover {
+        text-decoration: none;
+        background: #f7f9ff;
+        color: #2c3e50;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .kpi-value {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+
+<div class="admin-dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+            <p>Essential operational overview</p>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-chart-bar"></i> Key Metrics</div>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Blood</div>
+                    <div class="kpi-value">{{ totalbloodunit }}</div>
+                    <div class="kpi-note">ml available</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Pending Requests</div>
+                    <div class="kpi-value">{{ totalpendingrequest }}</div>
+                    <div class="kpi-note">needs review</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Urgent Requests</div>
+                    <div class="kpi-value">{{ urgent_pending_count }}</div>
+                    <div class="kpi-note">{{ urgent_pending_units }} ml urgent</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Approved Requests</div>
+                    <div class="kpi-value">{{ totalapprovedrequest }}</div>
+                    <div class="kpi-note">all-time approved</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Donors</div>
+                    <div class="kpi-value">{{ totaldonors }}</div>
+                    <div class="kpi-note">registered</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Patients</div>
+                    <div class="kpi-value">{{ totalpatients }}</div>
+                    <div class="kpi-note">registered</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-tint"></i> Blood Stock (All Groups)</div>
+            <div class="stock-grid">
+                <div class="stock-item">
+                    <div class="stock-group">A+</div>
+                    <div class="stock-unit">{{ A1.unit }}</div>
+                    <div class="stock-unit-label">ml</div>
+                </div>
+                <div class="stock-item">
+                    <div class="stock-group">A-</div>
+                    <div class="stock-unit">{{ A2.unit }}</div>
+                    <div class="stock-unit-label">ml</div>
+                </div>
+                <div class="stock-item">
+                    <div class="stock-group">B+</div>
+                    <div class="stock-unit">{{ B1.unit }}</div>
+                    <div class="stock-unit-label">ml</div>
+                </div>
+                <div class="stock-item">
+                    <div class="stock-group">B-</div>
+                    <div class="stock-unit">{{ B2.unit }}</div>
+                    <div class="stock-unit-label">ml</div>
+                </div>
+                <div class="stock-item">
+                    <div class="stock-group">AB+</div>
+                    <div class="stock-unit">{{ AB1.unit }}</div>
+                    <div class="stock-unit-label">ml</div>
+                </div>
+                <div class="stock-item">
+                    <div class="stock-group">AB-</div>
+                    <div class="stock-unit">{{ AB2.unit }}</div>
+                    <div class="stock-unit-label">ml</div>
+                </div>
+                <div class="stock-item">
+                    <div class="stock-group">O+</div>
+                    <div class="stock-unit">{{ O1.unit }}</div>
+                    <div class="stock-unit-label">ml</div>
+                </div>
+                <div class="stock-item">
+                    <div class="stock-group">O-</div>
+                    <div class="stock-unit">{{ O2.unit }}</div>
+                    <div class="stock-unit-label">ml</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+            <div class="actions-grid">
+                <a class="dashboard-action" href="/admin-request/">Review Blood Requests</a>
+                <a class="dashboard-action" href="/admin-donation/">Review Donations</a>
+                <a class="dashboard-action" href="/admin-blood/">Update Blood Stock</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+.footer {
+   position: relative;
+   left: 0;
+   bottom: 0;
+   width: 100%;
+   background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+   color: white;
+   text-align: center;
+   padding: 25px 20px;
+   box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+   font-family: 'Poppins', sans-serif;
+   border-top: 3px solid #e74c3c;
+}
+
+.footer-content {
+   max-width: 1200px;
+   margin: 0 auto;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 15px;
+}
+
+.footer-title {
+   font-size: 1.2rem;
+   font-weight: 600;
+   margin-bottom: 5px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 10px;
+}
+
+.footer-title .fa-tint {
+   color: #e74c3c;
+   animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+   0% { transform: scale(1); }
+   50% { transform: scale(1.1); }
+   100% { transform: scale(1); }
+}
+
+.footer-info {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 15px;
+   flex-wrap: wrap;
+   font-size: 0.9rem;
+   opacity: 0.9;
+}
+
+.footer-divider {
+   width: 2px;
+   height: 20px;
+   background: linear-gradient(180deg, transparent, #e74c3c, transparent);
+}
+
+.made-in-india {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   font-weight: 500;
+}
+
+.indian-flag {
+   display: inline-flex;
+   width: 20px;
+   height: 14px;
+   border-radius: 2px;
+   overflow: hidden;
+   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.flag-stripe {
+   flex: 1;
+   height: 100%;
+}
+
+.flag-saffron { background: #FF9933; }
+.flag-white { background: #FFFFFF; position: relative; }
+.flag-green { background: #138808; }
+
+.flag-white::after {
+   content: '⚙';
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   color: #000080;
+   font-size: 8px;
+}
+
+.copyright {
+   font-weight: 400;
+   letter-spacing: 0.5px;
+}
+
+.year {
+   font-weight: 600;
+   color: #667eea;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+   .footer {
+      padding: 20px 15px;
+   }
+   
+   .footer-title {
+      font-size: 1.1rem;
+   }
+   
+   .footer-info {
+      font-size: 0.85rem;
+      gap: 10px;
+   }
+   
+   .footer-divider {
+      display: none;
+   }
+   
+   .footer-info {
+      flex-direction: column;
+      gap: 8px;
+   }
+}
+
+/* Hover effects */
+.footer:hover .fa-tint {
+   animation-duration: 1s;
+}
+
+.footer-title:hover {
+   color: #667eea;
+   transition: color 0.3s ease;
+}
+
+</style>
+</head>
+
+<body>
+<div class="footer">
+   <div class="footer-content">
+      <div class="footer-title">
+         <i class="fas fa-tint"></i>
+         BloodBridge
+      </div>
+      
+      <div class="footer-info">
+         <div class="made-in-india">
+            <span>Made In India</span>
+            <div class="indian-flag">
+               <div class="flag-stripe flag-saffron"></div>
+               <div class="flag-stripe flag-white"></div>
+               <div class="flag-stripe flag-green"></div>
+            </div>
+         </div>
+         
+         <div class="footer-divider"></div>
+         
+         <div class="copyright">
+            &copy; <span class="year">2026</span> BloodBridge. All Rights Reserved
+         </div>
+      </div>
+   </div>
+</div>
+
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="fas fa-heart text-danger"></i> BloodBridge</h5>
+                <p class="mb-0">Connecting lives through blood donation management</p>
+            </div>
+            <div class="col-md-6 text-md-right">
+               <p class="mb-0">&copy; 2026 BloodBridge. All rights reserved.</p>
+                <p class="mb-0">
+                    <i class="fas fa-phone"></i> Emergency: 911 | 
+                    <i class="fas fa-envelope"></i> contact@bloodbridge.com
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

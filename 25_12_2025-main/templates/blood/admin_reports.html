@@ -1,0 +1,246 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+
+<style>
+    .rpt-page { padding: 20px 0; }
+    .rpt-title { font-size: 1.5rem; font-weight: 700; color: #2c3e50; margin-bottom: 4px; }
+    .rpt-title i { color: #667eea; margin-right: 8px; }
+    .rpt-sub { color: #6b7280; font-size: 0.88rem; margin-bottom: 16px; }
+
+    .rpt-card { background: #fff; border-radius: 14px; border: 1px solid #e5e7eb; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 16px; }
+    .rpt-card-head { padding: 14px 18px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #334155; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+    .rpt-card-head i { color: #667eea; }
+    .rpt-card-body { padding: 16px 18px; }
+
+    /* KPI strip */
+    .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+    .kpi-box { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; background: #f8fafc; text-align: center; }
+    .kpi-box .kpi-val { font-size: 1.35rem; font-weight: 800; color: #0f172a; }
+    .kpi-box .kpi-lbl { font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.3px; }
+
+    /* Export grid */
+    .export-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .export-item {
+        border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px 16px;
+        display: flex; align-items: center; gap: 14px; background: #fafbfc;
+        transition: box-shadow 0.2s;
+    }
+    .export-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .export-icon {
+        width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; font-size: 1.1rem; color: #fff; flex-shrink: 0;
+    }
+    .export-info { flex: 1; min-width: 0; }
+    .export-name { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
+    .export-desc { font-size: 0.75rem; color: #64748b; margin-top: 1px; }
+    .export-btns { display: flex; gap: 6px; margin-top: 6px; }
+    .dl-btn {
+        padding: 3px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700;
+        text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+        border: 1px solid; transition: opacity 0.2s;
+    }
+    .dl-btn:hover { opacity: 0.8; text-decoration: none; }
+    .dl-csv { color: #0369a1; border-color: #bae6fd; background: #e0f2fe; }
+    .dl-csv:hover { color: #0369a1; }
+    .dl-pdf { color: #be123c; border-color: #fecdd3; background: #fff1f2; }
+    .dl-pdf:hover { color: #be123c; }
+
+    /* Fulfillment rate color classes */
+    .rate-good { color: #059669; }
+    .rate-warn { color: #d97706; }
+    .rate-bad { color: #dc2626; }
+
+    /* Status chips */
+    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 8px; }
+    .status-chip {
+        border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; padding: 8px 10px;
+        font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .status-chip .s-lbl { color: #64748b; font-weight: 600; }
+    .status-chip .s-val { font-weight: 800; color: #0f172a; }
+
+    /* Compact recent table */
+    .recent-tbl { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .recent-tbl th { background: #f8fafc; color: #64748b; font-size: 0.7rem; text-transform: uppercase; padding: 6px 8px; border-bottom: 2px solid #e5e7eb; font-weight: 700; }
+    .recent-tbl td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; color: #334155; }
+    .recent-tbl tr:hover td { background: #f8f9fe; }
+
+    .date-range-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .date-range-form input[type="date"] { border-radius: 8px; font-size: 0.85rem; padding: 5px 10px; border: 1px solid #d1d5db; }
+    .date-range-form .btn { border-radius: 8px; font-size: 0.85rem; padding: 5px 16px; font-weight: 700; }
+    .tiny { font-size: 0.75rem; color: #94a3b8; margin-top: 8px; }
+</style>
+
+<div class="container-fluid rpt-page">
+    <h2 class="rpt-title"><i class="fas fa-chart-bar"></i> Reports Center</h2>
+    <p class="rpt-sub">Export data, view fulfillment metrics, and download reports in CSV or PDF.</p>
+
+    <!-- Date Range Filter -->
+    <div class="rpt-card">
+        <div class="rpt-card-head"><i class="fas fa-calendar-alt"></i> Date Range Filter</div>
+        <div class="rpt-card-body">
+            <form method="get" class="date-range-form">
+                <input type="date" name="start_date" value="{{ start_date_value }}" />
+                <span style="color:#94a3b8;">to</span>
+                <input type="date" name="end_date" value="{{ end_date_value }}" />
+                <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Apply</button>
+                {% if start_date_value or end_date_value %}
+                    <a href="{% url 'admin-reports' %}" class="btn btn-outline-secondary" style="border-radius:8px;font-size:0.85rem;padding:5px 14px;">Clear</a>
+                {% endif %}
+            </form>
+            <div class="tiny">Date range applies to Requests, Donations, Fulfillment, and Audit Log exports.</div>
+        </div>
+    </div>
+
+    <!-- KPI Snapshot -->
+    <div class="rpt-card">
+        <div class="rpt-card-head"><i class="fas fa-tachometer-alt"></i> Fulfillment Snapshot</div>
+        <div class="rpt-card-body">
+            <div class="kpi-strip">
+                <div class="kpi-box"><div class="kpi-val">{{ summary.total_requests }}</div><div class="kpi-lbl">Requests</div></div>
+                <div class="kpi-box"><div class="kpi-val">{{ summary.approved_requests }}</div><div class="kpi-lbl">Approved</div></div>
+                <div class="kpi-box"><div class="kpi-val">{{ summary.pending_requests }}</div><div class="kpi-lbl">Pending</div></div>
+                <div class="kpi-box"><div class="kpi-val">{{ summary.approved_donations }}</div><div class="kpi-lbl">Donations OK</div></div>
+                <div class="kpi-box"><div class="kpi-val">{{ summary.stock_units }}<small style="font-size:0.6em;color:#64748b;">ml</small></div><div class="kpi-lbl">Stock</div></div>
+                <div class="kpi-box"><div class="kpi-val {% if summary.fulfillment_rate >= 70 %}rate-good{% elif summary.fulfillment_rate >= 40 %}rate-warn{% else %}rate-bad{% endif %}">{{ summary.fulfillment_rate }}%</div><div class="kpi-lbl">Fulfillment</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Downloads — 7 report types -->
+    <div class="rpt-card">
+        <div class="rpt-card-head"><i class="fas fa-download"></i> Download Reports (7 types)</div>
+        <div class="rpt-card-body">
+            <div class="export-grid">
+                <!-- 1. Blood Stock -->
+                <div class="export-item">
+                    <div class="export-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)"><i class="fas fa-tint"></i></div>
+                    <div class="export-info">
+                        <div class="export-name">Blood Stock</div>
+                        <div class="export-desc">Current inventory by blood group</div>
+                        <div class="export-btns">
+                            <a class="dl-btn dl-csv" href="{% url 'admin-reports-export' 'stock' 'csv' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-csv"></i> CSV</a>
+                            <a class="dl-btn dl-pdf" href="{% url 'admin-reports-export' 'stock' 'pdf' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-pdf"></i> PDF</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- 2. Blood Requests -->
+                <div class="export-item">
+                    <div class="export-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb)"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="export-info">
+                        <div class="export-name">Blood Requests</div>
+                        <div class="export-desc">All request records with status &amp; channel</div>
+                        <div class="export-btns">
+                            <a class="dl-btn dl-csv" href="{% url 'admin-reports-export' 'requests' 'csv' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-csv"></i> CSV</a>
+                            <a class="dl-btn dl-pdf" href="{% url 'admin-reports-export' 'requests' 'pdf' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-pdf"></i> PDF</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- 3. Fulfillment -->
+                <div class="export-item">
+                    <div class="export-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="fas fa-chart-line"></i></div>
+                    <div class="export-info">
+                        <div class="export-name">Fulfillment Summary</div>
+                        <div class="export-desc">Allocation vs fulfillment metrics</div>
+                        <div class="export-btns">
+                            <a class="dl-btn dl-csv" href="{% url 'admin-reports-export' 'fulfillment' 'csv' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-csv"></i> CSV</a>
+                            <a class="dl-btn dl-pdf" href="{% url 'admin-reports-export' 'fulfillment' 'pdf' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-pdf"></i> PDF</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- 4. Donors -->
+                <div class="export-item">
+                    <div class="export-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-hand-holding-heart"></i></div>
+                    <div class="export-info">
+                        <div class="export-name">Donor Registry</div>
+                        <div class="export-desc">All donors with contact, blood group &amp; status</div>
+                        <div class="export-btns">
+                            <a class="dl-btn dl-csv" href="{% url 'admin-reports-export' 'donors' 'csv' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-csv"></i> CSV</a>
+                            <a class="dl-btn dl-pdf" href="{% url 'admin-reports-export' 'donors' 'pdf' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-pdf"></i> PDF</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- 5. Patients -->
+                <div class="export-item">
+                    <div class="export-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><i class="fas fa-user-injured"></i></div>
+                    <div class="export-info">
+                        <div class="export-name">Patient Registry</div>
+                        <div class="export-desc">All patients with age, disease &amp; doctor info</div>
+                        <div class="export-btns">
+                            <a class="dl-btn dl-csv" href="{% url 'admin-reports-export' 'patients' 'csv' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-csv"></i> CSV</a>
+                            <a class="dl-btn dl-pdf" href="{% url 'admin-reports-export' 'patients' 'pdf' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-pdf"></i> PDF</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- 6. Donations -->
+                <div class="export-item">
+                    <div class="export-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)"><i class="fas fa-heartbeat"></i></div>
+                    <div class="export-info">
+                        <div class="export-name">Blood Donations</div>
+                        <div class="export-desc">All donation records with donor &amp; status</div>
+                        <div class="export-btns">
+                            <a class="dl-btn dl-csv" href="{% url 'admin-reports-export' 'donations' 'csv' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-csv"></i> CSV</a>
+                            <a class="dl-btn dl-pdf" href="{% url 'admin-reports-export' 'donations' 'pdf' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-pdf"></i> PDF</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- 7. Audit Log -->
+                <div class="export-item">
+                    <div class="export-icon" style="background:linear-gradient(135deg,#64748b,#475569)"><i class="fas fa-shield-alt"></i></div>
+                    <div class="export-info">
+                        <div class="export-name">Audit Log</div>
+                        <div class="export-desc">Approve/reject actions with actor &amp; timestamps</div>
+                        <div class="export-btns">
+                            <a class="dl-btn dl-csv" href="{% url 'admin-reports-export' 'audit_log' 'csv' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-csv"></i> CSV</a>
+                            <a class="dl-btn dl-pdf" href="{% url 'admin-reports-export' 'audit_log' 'pdf' %}{% if export_query %}?{{ export_query }}{% endif %}"><i class="fas fa-file-pdf"></i> PDF</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tiny">Exports honor the selected date range when applicable.</div>
+        </div>
+    </div>
+
+    <!-- Operational Status -->
+    <div class="rpt-card">
+        <div class="rpt-card-head"><i class="fas fa-tasks"></i> Operational Breakdown</div>
+        <div class="rpt-card-body">
+            <div class="status-grid">
+                <div class="status-chip"><span class="s-lbl"><i class="fas fa-clock" style="color:#f59e0b"></i> Requests Pending</span><span class="s-val">{{ status_breakdown.requests_pending }}</span></div>
+                <div class="status-chip"><span class="s-lbl"><i class="fas fa-check" style="color:#10b981"></i> Requests Approved</span><span class="s-val">{{ status_breakdown.requests_approved }}</span></div>
+                <div class="status-chip"><span class="s-lbl"><i class="fas fa-times" style="color:#ef4444"></i> Requests Rejected</span><span class="s-val">{{ status_breakdown.requests_rejected }}</span></div>
+                <div class="status-chip"><span class="s-lbl"><i class="fas fa-clock" style="color:#f59e0b"></i> Donations Pending</span><span class="s-val">{{ status_breakdown.donations_pending }}</span></div>
+                <div class="status-chip"><span class="s-lbl"><i class="fas fa-check" style="color:#10b981"></i> Donations Approved</span><span class="s-val">{{ status_breakdown.donations_approved }}</span></div>
+                <div class="status-chip"><span class="s-lbl"><i class="fas fa-times" style="color:#ef4444"></i> Donations Rejected</span><span class="s-val">{{ status_breakdown.donations_rejected }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Export Activity -->
+    <div class="rpt-card">
+        <div class="rpt-card-head"><i class="fas fa-history"></i> Recent Export Activity</div>
+        <div class="rpt-card-body">
+            <table class="recent-tbl">
+                <thead><tr>
+                    <th>When</th><th>Report</th><th>Format</th><th>Rows</th><th>Actor</th><th>Status</th>
+                </tr></thead>
+                <tbody>
+                    {% for row in recent_exports %}
+                    <tr>
+                        <td>{{ row.created_at|date:"d M Y H:i" }}</td>
+                        <td>{{ row.report_key }}</td>
+                        <td><span style="background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:4px;font-size:0.72rem;font-weight:700;">{{ row.export_format|upper }}</span></td>
+                        <td>{{ row.rows_exported }}</td>
+                        <td>{{ row.actor_username|default:'system' }}</td>
+                        <td>{{ row.status }}{% if row.error %} &mdash; <span style="color:#dc2626;">{{ row.error }}</span>{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">No exports logged yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

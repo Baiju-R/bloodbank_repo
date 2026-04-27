@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <style type="text/css">
+    /* Enhanced Navbar Styles */
+    * {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .bs-example {
+      margin: 0px;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 12px 20px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar.scrolled {
+      box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+      padding: 8px 20px;
+    }
+
+    .navbar-brand {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white !important;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .navbar-brand:hover {
+      color: #f8f9fa !important;
+      transform: translateY(-1px);
+      text-shadow: 2px 4px 8px rgba(0,0,0,0.4);
+    }
+
+    .navbar-brand .fas {
+      color: #e74c3c;
+      font-size: 1.4rem;
+      animation: heartbeat 2s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.1); }
+      50% { transform: scale(1); }
+      75% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .navbar-toggler {
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      padding: 6px 10px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar-toggler:hover {
+      border-color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.1);
+    }
+
+    .navbar-toggler:focus {
+      box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+    }
+
+    .navbar-toggler-icon {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22m-22 6h22m-22 6h22'/%3e%3c/svg%3e");
+    }
+
+    .navbar-nav {
+      align-items: center;
+    }
+
+    .nav-item {
+      margin: 0 5px;
+    }
+
+    .nav-link {
+      color: white !important;
+      font-weight: 500;
+      font-size: 0.95rem;
+      padding: 10px 15px !important;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: all 0.6s ease;
+    }
+
+    .nav-link:hover::before {
+      left: 100%;
+    }
+
+    .nav-link:hover {
+      color: white !important;
+      background: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .nav-link.active {
+      background: rgba(255,255,255,0.2);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+
+    .nav-link .fas {
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .nav-link:hover .fas {
+      transform: scale(1.1);
+    }
+
+    /* Icon specific colors on hover */
+    .nav-link:hover .fa-home {
+      color: #f39c12;
+    }
+
+    .nav-link:hover .fa-procedures {
+      color: #e74c3c;
+    }
+
+    .nav-link:hover .fa-user {
+      color: #3498db;
+    }
+
+    .nav-link:hover .fa-user-shield {
+      color: #27ae60;
+    }
+
+    /* Enhanced Dropdown Styles */
+    .nav-item.dropdown {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      padding: 10px 0;
+      margin-top: 10px;
+      min-width: 200px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+
+    .dropdown-menu.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-item {
+      color: white !important;
+      padding: 12px 20px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      border-radius: 10px;
+      margin: 2px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dropdown-item:hover {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white !important;
+      transform: translateX(5px);
+      text-decoration: none;
+    }
+
+    .dropdown-item:focus {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white !important;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .dropdown-divider {
+      border-top: 1px solid rgba(255,255,255,0.2);
+      margin: 8px 10px;
+    }
+
+    .dropdown-toggle::after {
+      border-top: 0.3em solid;
+      border-right: 0.3em solid transparent;
+      border-left: 0.3em solid transparent;
+      margin-left: 0.5em;
+      transition: transform 0.3s ease;
+    }
+
+    .dropdown-toggle[aria-expanded="true"]::after {
+      transform: rotate(180deg);
+    }
+
+    /* Mobile responsive adjustments */
+    @media (max-width: 767px) {
+      .navbar {
+        padding: 10px 15px;
+      }
+
+      .navbar-brand {
+        font-size: 1.1rem;
+      }
+
+      .navbar-brand .fas {
+        font-size: 1.2rem;
+      }
+
+      .navbar-collapse {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255,255,255,0.2);
+      }
+
+      .nav-link {
+        padding: 12px 20px !important;
+        margin: 5px 0;
+        border-radius: 15px;
+        background: rgba(255,255,255,0.1);
+      }
+
+      .nav-link:hover {
+        background: rgba(255,255,255,0.2);
+        transform: none;
+      }
+
+      .dropdown-menu {
+        background: rgba(44, 62, 80, 0.95);
+        border-radius: 10px;
+        margin-top: 5px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        position: static;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .dropdown-item {
+        padding: 15px 20px;
+        margin: 2px 5px;
+      }
+
+      .dropdown-item:hover {
+        transform: none;
+      }
+    }
+
+    /* Scroll effect */
+    @media (min-width: 768px) {
+      .navbar.navbar-shrink {
+        padding: 8px 20px;
+      }
+
+      .navbar.navbar-shrink .navbar-brand {
+        font-size: 1.2rem;
+      }
+    }
+
+    /* Animation for mobile menu */
+    .navbar-collapse {
+      transition: all 0.3s ease;
+    }
+
+    .collapsing {
+      transition: height 0.35s ease;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bs-example">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger fixed-top" id="mainNavbar">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+          <i class="fas fa-heart"></i>
+          BloodBridge
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="fas fa-home"></i> Home
+              </a>
+            </li>
+            {% if user.is_authenticated %}
+              {% if user.is_superuser %}
+                <li class="nav-item">
+                  <a class="nav-link" href="/admin-dashboard/">
+                    <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+                  </a>
+                </li>
+              {% elif user.groups.all|length > 0 and user.groups.all.0.name == 'DONOR' %}
+                <li class="nav-item">
+                  <a class="nav-link" href="/donor/donor-dashboard/">
+                    <i class="fas fa-heart"></i> Donor Dashboard
+                  </a>
+                </li>
+              {% elif user.groups.all|length > 0 and user.groups.all.0.name == 'PATIENT' %}
+                <li class="nav-item">
+                  <a class="nav-link" href="/patient/dashboard/">
+                    <i class="fas fa-user-injured"></i> Patient Dashboard
+                  </a>
+                </li>
+              {% endif %}
+              <li class="nav-item">
+                <form method="post" action="/logout/" style="display:inline">
+                  {% csrf_token %}
+                  <button type="submit" class="nav-link btn btn-link" style="cursor:pointer">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                  </button>
+                </form>
+              </li>
+            {% else %}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="donorDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-users"></i> Donor
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="donorDropdown">
+                    <a class="dropdown-item" href="/donor/donorlogin/">
+                      <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a class="dropdown-item" href="/donor/donorsignup/">
+                      <i class="fas fa-user-plus"></i> Sign Up
+                    </a>
+                  </div>
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="patientDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-user-injured"></i> Patient
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="patientDropdown">
+                    <a class="dropdown-item" href="/patient/patientlogin/">
+                      <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a class="dropdown-item" href="/patient/patientsignup/">
+                      <i class="fas fa-user-plus"></i> Sign Up
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/quick-request/" style="background: linear-gradient(45deg, #e74c3c, #c0392b); color: white !important; border-radius: 10px; margin: 5px;">
+                      <i class="fas fa-bolt"></i> Emergency Blood Request
+                    </a>
+                  </div>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="/adminlogin/">
+                    <i class="fas fa-user-shield"></i> Admin Login
+                  </a>
+                </li>
+              {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    // Enhanced navbar functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const navbar = document.getElementById('mainNavbar');
+      const navLinks = document.querySelectorAll('.nav-link');
+      
+      // Navbar scroll effect
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+          navbar.classList.add('navbar-shrink');
+        } else {
+          navbar.classList.remove('navbar-shrink');
+        }
+      });
+      
+      // Active link highlighting
+      const currentPath = window.location.pathname;
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === currentPath || (currentPath === '/' && href === '/')) {
+          link.classList.add('active');
+        }
+      });
+      
+      // Enhanced dropdown functionality
+      const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+      
+      dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          const dropdownMenu = this.nextElementSibling;
+          const isExpanded = this.getAttribute('aria-expanded') === 'true';
+          
+          // Close all other dropdowns
+          dropdownToggles.forEach(otherToggle => {
+            if (otherToggle !== this) {
+              otherToggle.setAttribute('aria-expanded', 'false');
+              const otherMenu = otherToggle.nextElementSibling;
+              if (otherMenu) {
+                otherMenu.classList.remove('show');
+              }
+            }
+          });
+          
+          // Toggle current dropdown
+          if (isExpanded) {
+            this.setAttribute('aria-expanded', 'false');
+            dropdownMenu.classList.remove('show');
+          } else {
+            this.setAttribute('aria-expanded', 'true');
+            dropdownMenu.classList.add('show');
+          }
+        });
+      });
+      
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+          dropdownToggles.forEach(toggle => {
+            toggle.setAttribute('aria-expanded', 'false');
+            const menu = toggle.nextElementSibling;
+            if (menu) {
+              menu.classList.remove('show');
+            }
+          });
+        }
+      });
+      
+      // Auto-close mobile menu on link click
+      navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+          const navbarCollapse = document.getElementById('navbarCollapse');
+          if (navbarCollapse.classList.contains('show')) {
+            document.querySelector('.navbar-toggler').click();
+          }
+        });
+      });
+      
+            // Close dropdowns on mobile menu collapse
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            if (navbarToggler) {
+              navbarToggler.addEventListener('click', function() {
+                dropdownToggles.forEach(toggle => {
+                  toggle.setAttribute('aria-expanded', 'false');
+                  const menu = toggle.nextElementSibling;
+                  if (menu) {
+                    menu.classList.remove('show');
+                  }
+                });
+              });
+            }
+          });
+        </script>
+
+        {% include 'blood/faq_button.html' %}
+      
+      </body>
+      </html>

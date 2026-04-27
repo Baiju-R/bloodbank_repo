@@ -1,0 +1,452 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+{% load widget_tweaks %}
+{%load static%}
+
+<style>
+    /* Enhanced Admin Patient Styles */
+    .patient-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .dashboard-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .table-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-weight: 600;
+        position: relative;
+        font-size: 1.8rem;
+    }
+    
+    .table-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+        border-radius: 2px;
+    }
+    
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .id-card {
+        background: linear-gradient(160deg, #ffffff 0%, #f8f9ff 100%);
+        border: 2px solid #e9ecf7;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 10px 24px rgba(52, 73, 94, 0.12);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .id-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+    }
+
+    .id-card.card-variant-a::before {
+        background: linear-gradient(90deg, #667eea, #5a67d8);
+    }
+
+    .id-card.card-variant-b::before {
+        background: linear-gradient(90deg, #764ba2, #8e44ad);
+    }
+
+    .id-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 32px rgba(52, 73, 94, 0.18);
+    }
+
+    .id-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .id-card-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .id-chip {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        color: #3f4a5f;
+        background: #eef1fb;
+        border: 1px solid #d4dcf3;
+        border-radius: 999px;
+        padding: 4px 10px;
+    }
+
+    .id-card-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .id-card-body {
+        background: #f7f8fc;
+        border-radius: 12px;
+        padding: 12px;
+        border-left: 4px solid #667eea;
+    }
+
+    .id-field {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px dashed #dbe2f3;
+        font-size: 0.95rem;
+    }
+
+    .id-field:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .id-label {
+        color: #5f6f86;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .id-value {
+        color: #2c3e50;
+        font-weight: 600;
+        text-align: right;
+        word-break: break-word;
+    }
+    
+    .profile-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #667eea;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .profile-image:hover {
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .blood-group-badge {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-block;
+        min-width: 45px;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
+    }
+    
+    .patient-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+    
+    .age-display {
+        font-weight: 600;
+        color: #7f8c8d;
+        font-size: 1rem;
+    }
+    
+    .disease-display {
+        color: #8e44ad;
+        font-weight: 500;
+        background: #f8f9fa;
+        padding: 4px 8px;
+        border-radius: 10px;
+        border-left: 3px solid #8e44ad;
+    }
+    
+    .mobile-display {
+        color: #27ae60;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .action-btn {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: none;
+        margin: 2px;
+        min-width: 80px;
+    }
+    
+    .btn-edit {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+    
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        color: white;
+    }
+    
+    .btn-delete {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        color: white;
+    }
+    
+    .btn-edit a, .btn-delete a {
+        color: white !important;
+        text-decoration: none !important;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .id-card-footer {
+        border-top: 1px solid #e4e9f7;
+        padding-top: 10px;
+    }
+    
+    .profile-placeholder {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #bdc3c7, #95a5a6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        margin: 0 auto;
+        transition: all 0.3s ease;
+    }
+    
+    .profile-placeholder:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(189, 195, 199, 0.3);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 30px 15px;
+        border: 2px dashed #d8deef;
+        border-radius: 14px;
+        color: #5f6f86;
+        font-weight: 600;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .table-container {
+            padding: 20px 15px;
+        }
+
+        .cards-grid {
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            min-width: 70px;
+        }
+        
+        .profile-image {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .action-buttons {
+            flex-direction: row;
+            gap: 2px;
+            justify-content: flex-start;
+        }
+
+        .id-field {
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .id-value {
+            text-align: left;
+        }
+    }
+</style>
+
+<div class="patient-dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-user-injured"></i> Patient Management</h1>
+            <p>Manage Registered Patients</p>
+        </div>
+
+        <div class="table-container">
+            <h4 class="table-title">
+                <i class="fas fa-procedures"></i> Patient Details
+            </h4>
+
+            <form method="get" class="mb-4">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-8 col-lg-6">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Search patients (name, blood group, mobile, disease, ID…)" value="{{ query|default:'' }}">
+                            {% if query %}
+                                <a class="btn btn-outline-secondary" href="?" title="Clear search">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            {% endif %}
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            {% if patients %}
+                <div class="cards-grid">
+                    {% for t in patients %}
+                    <div class="id-card {% if forloop.counter0|divisibleby:2 %}card-variant-a{% else %}card-variant-b{% endif %}">
+                        <div class="id-card-header">
+                            <div class="id-card-profile">
+                                {% if t.profile_pic %}
+                                    <img src="{{ t.profile_pic.url }}"
+                                         alt="Profile Pic"
+                                         class="profile-image"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="profile-placeholder" style="display: none;">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                {% else %}
+                                    <img src="https://i.pravatar.cc/150?u=patient-{{t.id}}"
+                                         alt="Random Patient Avatar"
+                                         class="profile-image"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="profile-placeholder" style="display: none;">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="patient-name">{{t.get_name}}</div>
+                                    <span class="blood-group-badge">{{t.bloodgroup}}</span>
+                                </div>
+                            </div>
+                            <div class="id-card-meta">
+                                <span class="id-chip">PATIENT ID #{{t.id}}</span>
+                                <div class="age-display">{{t.age}} years</div>
+                            </div>
+                        </div>
+
+                        <div class="id-card-body">
+                            <div class="id-field">
+                                <span class="id-label"><i class="fas fa-stethoscope"></i> Disease</span>
+                                <span class="id-value disease-display">{{t.disease}}</span>
+                            </div>
+                            <div class="id-field">
+                                <span class="id-label"><i class="fas fa-phone"></i> Mobile</span>
+                                <span class="id-value mobile-display">{{t.mobile}}</span>
+                            </div>
+                        </div>
+
+                        <div class="id-card-footer">
+                            <div class="action-buttons">
+                                <a class="btn action-btn btn-edit" href="{% url 'update-patient' t.id %}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form method="post" action="{% url 'delete-patient' t.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button class="btn action-btn btn-delete" type="submit" onclick="return confirm('Delete this patient? This cannot be undone.');">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    {% if query %}
+                        <i class="fas fa-search"></i> No patients match "{{ query }}".
+                    {% else %}
+                        <i class="fas fa-user-slash"></i> No patients found.
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

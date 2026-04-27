@@ -1,0 +1,880 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+
+<style>
+    /* ── Design tokens ─────────────────────────────────────────── */
+    .ax { --card-bg: #fff; --card-radius: 16px; --card-shadow: 0 1px 3px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.04); --card-shadow-hover: 0 4px 12px rgba(0,0,0,.08), 0 20px 40px rgba(0,0,0,.06); --text-primary: #0f172a; --text-secondary: #64748b; --text-muted: #94a3b8; --border: #e2e8f0; --rose: #f43f5e; --emerald: #10b981; --amber: #f59e0b; --indigo: #6366f1; --violet: #8b5cf6; --cyan: #06b6d4; --blue: #3b82f6; --pink: #ec4899; padding: 20px 0 60px; color: var(--text-primary); }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .ax-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
+    .ax-header h1 { font-size:2rem; font-weight:800; margin:0; }
+    .ax-header h1 i { color:var(--rose); }
+    .ax-header p { color:var(--text-secondary); margin:4px 0 0; }
+
+    /* ── Fallback alert ────────────────────────────────────────── */
+    .ax-fallback { background:linear-gradient(135deg,#fde68a,#f97316); border-radius:14px; padding:16px 20px; color:#78350f; font-weight:600; display:flex; align-items:center; gap:12px; margin-bottom:20px; box-shadow:0 12px 25px rgba(249,115,22,.2); }
+    .ax-fallback i { font-size:1.3rem; }
+
+    /* ── Filters ────────────────────────────────────────────────── */
+    .ax-filters { background:var(--card-bg); border-radius:var(--card-radius); padding:20px; box-shadow:var(--card-shadow); margin-bottom:28px; }
+    .ax-filters form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px; }
+    .ax-filters label { font-size:.85rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px; }
+    .ax-filters select, .ax-filters input[type="date"] { border-radius:10px; border:1px solid var(--border); padding:9px 14px; min-width:170px; font-weight:500; font-size:.9rem; }
+    .ax-filters .ax-btn { border:none; background:linear-gradient(135deg,var(--indigo),var(--pink)); color:#fff; border-radius:10px; padding:11px 26px; font-weight:600; cursor:pointer; box-shadow:0 10px 25px rgba(99,102,241,.3); transition:transform .15s; }
+    .ax-filters .ax-btn:hover { transform:translateY(-1px); }
+    .ax-custom-range { display:flex; gap:10px; flex-wrap:wrap; }
+    .ax-custom-range.hidden { display:none; }
+    .ax-compare-toggle { display:flex; align-items:center; gap:8px; font-weight:600; color:var(--indigo); font-size:.9rem; }
+
+    /* ── KPI strip ──────────────────────────────────────────────── */
+    .ax-kpi-strip { display:grid; grid-template-columns:repeat(auto-fit, minmax(175px, 1fr)); gap:16px; margin-bottom:28px; }
+    .ax-kpi { background:var(--card-bg); border-radius:14px; padding:18px 16px; box-shadow:var(--card-shadow); position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s; }
+    .ax-kpi:hover { transform:translateY(-2px); box-shadow:var(--card-shadow-hover); }
+    .ax-kpi::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; border-radius:4px 0 0 4px; }
+    .ax-kpi.kpi-rose::before { background:var(--rose); }
+    .ax-kpi.kpi-emerald::before { background:var(--emerald); }
+    .ax-kpi.kpi-amber::before { background:var(--amber); }
+    .ax-kpi.kpi-indigo::before { background:var(--indigo); }
+    .ax-kpi.kpi-violet::before { background:var(--violet); }
+    .ax-kpi.kpi-cyan::before { background:var(--cyan); }
+    .ax-kpi.kpi-blue::before { background:var(--blue); }
+    .ax-kpi.kpi-pink::before { background:var(--pink); }
+    .ax-kpi-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:.95rem; color:#fff; margin-bottom:10px; }
+    .ax-kpi.kpi-rose .ax-kpi-icon { background:linear-gradient(135deg,#fb7185,#f43f5e); }
+    .ax-kpi.kpi-emerald .ax-kpi-icon { background:linear-gradient(135deg,#34d399,#10b981); }
+    .ax-kpi.kpi-amber .ax-kpi-icon { background:linear-gradient(135deg,#fbbf24,#f59e0b); }
+    .ax-kpi.kpi-indigo .ax-kpi-icon { background:linear-gradient(135deg,#818cf8,#6366f1); }
+    .ax-kpi.kpi-violet .ax-kpi-icon { background:linear-gradient(135deg,#a78bfa,#8b5cf6); }
+    .ax-kpi.kpi-cyan .ax-kpi-icon { background:linear-gradient(135deg,#22d3ee,#06b6d4); }
+    .ax-kpi.kpi-blue .ax-kpi-icon { background:linear-gradient(135deg,#60a5fa,#3b82f6); }
+    .ax-kpi.kpi-pink .ax-kpi-icon { background:linear-gradient(135deg,#f472b6,#ec4899); }
+    .ax-kpi-value { font-size:1.65rem; font-weight:800; line-height:1.1; margin-bottom:2px; }
+    .ax-kpi-label { font-size:.78rem; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); font-weight:600; }
+    .ax-kpi-sub { font-size:.78rem; color:var(--text-secondary); margin-top:4px; }
+
+    /* ── Action alerts ──────────────────────────────────────────── */
+    .ax-alerts { background:var(--card-bg); border-radius:var(--card-radius); padding:18px 22px; box-shadow:var(--card-shadow); margin-bottom:24px; border-left:4px solid var(--amber); }
+    .ax-alerts h3 { font-size:1rem; font-weight:700; margin:0 0 10px; }
+    .ax-alerts ul { margin:0; padding-left:18px; color:#374151; }
+    .ax-alerts li { margin-bottom:6px; font-weight:500; font-size:.92rem; }
+    .ax-alerts-ok { color:var(--emerald); font-weight:700; margin:0; font-size:.92rem; }
+
+    /* ── Comparison panel ──────────────────────────────────────── */
+    .ax-comparison { background:linear-gradient(135deg,#312e81,#1e1b4b); border-radius:20px; padding:24px; color:#f8fafc; margin-bottom:28px; box-shadow:0 25px 50px rgba(49,46,129,.35); }
+    .ax-comparison h3 { margin:0 0 14px; font-size:1.1rem; }
+    .ax-comparison table { width:100%; border-collapse:collapse; }
+    .ax-comparison th { text-transform:uppercase; letter-spacing:1px; font-size:.75rem; color:rgba(248,250,252,.6); padding:10px 8px; text-align:left; }
+    .ax-comparison td { padding:10px 8px; }
+    .ax-delta { padding:4px 10px; border-radius:999px; font-size:.82rem; font-weight:600; display:inline-flex; align-items:center; gap:5px; }
+    .ax-delta.up { background:rgba(16,185,129,.15); color:#6ee7b7; }
+    .ax-delta.down { background:rgba(248,113,113,.15); color:#fecaca; }
+
+    /* ── Tab system ─────────────────────────────────────────────── */
+    .ax-tabs-wrap { margin-bottom:28px; }
+    .ax-tabs-header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:20px; }
+    .ax-tabs-header h2 { font-size:1.35rem; font-weight:700; margin:0; }
+    .ax-tabs-header p { color:var(--text-secondary); margin:4px 0 0; font-size:.92rem; }
+    .ax-tabs-nav { display:flex; gap:8px; flex-wrap:wrap; }
+    .ax-tab-btn { border:none; background:rgba(226,232,240,.55); color:var(--text-primary); padding:9px 18px; border-radius:999px; font-weight:600; font-size:.88rem; letter-spacing:.2px; cursor:pointer; transition:all .2s; box-shadow:inset 0 0 0 1px rgba(148,163,184,.25); }
+    .ax-tab-btn:hover { background:rgba(226,232,240,.9); }
+    .ax-tab-btn.active { background:linear-gradient(135deg,var(--indigo),var(--pink)); color:#fff; box-shadow:0 8px 22px rgba(99,102,241,.25); }
+    .ax-panel { display:none; }
+    .ax-panel.active { display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:20px; animation:axFadeIn .35s ease; }
+    @keyframes axFadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Chart cards ────────────────────────────────────────────── */
+    .ax-card { background:var(--card-bg); border-radius:var(--card-radius); padding:22px; box-shadow:var(--card-shadow); }
+    .ax-card.span-2 { grid-column:span 2; }
+    .ax-card h3 { font-size:1rem; font-weight:700; margin:0 0 4px; }
+    .ax-card .ax-card-desc { font-size:.82rem; color:var(--text-muted); margin:0 0 14px; }
+    .ax-card canvas { width:100%!important; height:300px!important; }
+    .ax-card .chart-toggle { display:flex; gap:8px; margin-bottom:10px; }
+    .ax-card .chart-toggle button { border:none; border-radius:8px; padding:5px 12px; font-size:.8rem; font-weight:600; background:#e2e8f0; color:#334155; cursor:pointer; }
+    .ax-card .chart-toggle button.active { background:var(--indigo); color:#fff; }
+
+    /* ── Stock health grid ──────────────────────────────────────── */
+    .ax-stock-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:12px; }
+    .ax-stock-tile { text-align:center; border-radius:12px; padding:16px 10px; transition:transform .15s; }
+    .ax-stock-tile:hover { transform:translateY(-2px); }
+    .ax-stock-tile.critical { background:linear-gradient(135deg,#fef2f2,#fee2e2); border:1px solid #fca5a5; }
+    .ax-stock-tile.low { background:linear-gradient(135deg,#fffbeb,#fef3c7); border:1px solid #fcd34d; }
+    .ax-stock-tile.adequate { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:1px solid #86efac; }
+    .ax-stock-tile.healthy { background:linear-gradient(135deg,#eff6ff,#dbeafe); border:1px solid #93c5fd; }
+    .ax-stock-tile .ax-stock-bg { font-size:1.3rem; font-weight:800; margin-bottom:4px; }
+    .ax-stock-tile .ax-stock-units { font-size:.9rem; font-weight:600; color:var(--text-secondary); }
+    .ax-stock-tile .ax-stock-label { font-size:.7rem; text-transform:uppercase; letter-spacing:.8px; font-weight:700; margin-top:6px; }
+    .ax-stock-tile.critical .ax-stock-label { color:#dc2626; }
+    .ax-stock-tile.low .ax-stock-label { color:#d97706; }
+    .ax-stock-tile.adequate .ax-stock-label { color:#16a34a; }
+    .ax-stock-tile.healthy .ax-stock-label { color:#2563eb; }
+
+    /* ── Risk table ─────────────────────────────────────────────── */
+    .ax-risk-table { width:100%; border-collapse:collapse; }
+    .ax-risk-table th, .ax-risk-table td { padding:10px 8px; border-bottom:1px solid var(--border); text-align:left; font-size:.88rem; }
+    .ax-risk-table th { color:var(--text-muted); text-transform:uppercase; letter-spacing:.6px; font-size:.72rem; }
+    .ax-risk-badge { display:inline-flex; border-radius:999px; padding:3px 10px; font-weight:700; font-size:.72rem; }
+    .ax-risk-badge.high { background:rgba(248,113,113,.18); color:#b91c1c; }
+    .ax-risk-badge.medium { background:rgba(251,191,36,.18); color:#b45309; }
+    .ax-risk-badge.low { background:rgba(52,211,153,.18); color:#047857; }
+
+    /* ── Leaderboard ────────────────────────────────────────────── */
+    .ax-lb-card { background:radial-gradient(circle at top left,rgba(79,70,229,.1),rgba(30,27,75,.06)),#fff; border:1px solid rgba(99,102,241,.12); }
+    .ax-lb-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap; }
+    .ax-lb-header .ax-lb-badge { background:rgba(251,191,36,.18); color:#b45309; border-radius:999px; padding:5px 14px; font-weight:600; font-size:.82rem; display:inline-flex; align-items:center; gap:6px; }
+    .ax-lb-list { display:flex; flex-direction:column; gap:12px; }
+    .ax-lb-row { display:flex; align-items:center; gap:14px; padding:12px 14px; border-radius:14px; background:rgba(248,250,252,.8); border:1px solid rgba(226,232,240,.5); transition:transform .2s, box-shadow .2s; }
+    .ax-lb-row:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(15,23,42,.08); }
+    .ax-lb-row.gold { background:linear-gradient(135deg,#fde68a,#f97316); color:#78350f; border-color:transparent; box-shadow:0 12px 30px rgba(249,115,22,.2); }
+    .ax-lb-rank { font-size:1.2rem; font-weight:700; color:var(--indigo); min-width:36px; text-align:center; }
+    .ax-lb-row.gold .ax-lb-rank { color:#b45309; }
+    .ax-lb-avatar { width:50px; height:50px; border-radius:50%; overflow:hidden; border:2px solid #fff; box-shadow:0 4px 10px rgba(15,23,42,.15); flex-shrink:0; background:#fff; }
+    .ax-lb-avatar img { width:100%; height:100%; object-fit:cover; }
+    .ax-lb-info h4 { margin:0; font-size:.95rem; font-weight:700; }
+    .ax-lb-info p { margin:3px 0 0; font-size:.82rem; color:rgba(15,23,42,.65); }
+    .ax-lb-row.gold .ax-lb-info p { color:rgba(120,53,15,.75); }
+    .ax-lb-meta { font-size:.75rem; color:var(--text-muted); }
+    .ax-lb-row.gold .ax-lb-meta { color:rgba(120,53,15,.7); }
+    .ax-lb-units { margin-left:auto; text-align:right; }
+    .ax-lb-units span { display:block; font-size:1.1rem; font-weight:700; }
+
+    /* ── Feedback summary card ──────────────────────────────────── */
+    .ax-fb-summary { display:flex; flex-direction:column; gap:16px; }
+    .ax-fb-stat { display:flex; align-items:center; gap:12px; padding:14px; border-radius:12px; background:rgba(248,250,252,.8); border:1px solid var(--border); }
+    .ax-fb-stat-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:#fff; flex-shrink:0; }
+    .ax-fb-stat-value { font-size:1.4rem; font-weight:700; }
+    .ax-fb-stat-label { font-size:.8rem; color:var(--text-muted); }
+
+    /* ── Demographic stat cards ─────────────────────────────────── */
+    .ax-demo-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .ax-demo-stat { padding:16px; border-radius:12px; background:rgba(248,250,252,.8); border:1px solid var(--border); text-align:center; }
+    .ax-demo-stat .ax-demo-val { font-size:1.5rem; font-weight:800; color:var(--indigo); }
+    .ax-demo-stat .ax-demo-lbl { font-size:.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.8px; font-weight:600; margin-top:4px; }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width:992px) {
+        .ax-card.span-2 { grid-column:span 1; }
+        .ax-panel.active { grid-template-columns:1fr; }
+    }
+    @media (max-width:768px) {
+        .ax-filters form { flex-direction:column; align-items:stretch; }
+        .ax-kpi-strip { grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); }
+        .ax-card canvas { height:240px!important; }
+        .ax-lb-row { flex-wrap:wrap; }
+        .ax-lb-units { width:100%; margin-top:8px; text-align:center; }
+        .ax-stock-grid { grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); }
+    }
+</style>
+
+<div class="ax">
+
+    <!-- ── Header ──────────────────────────────────────────── -->
+    <div class="ax-header">
+        <div>
+            <h1><i class="fas fa-chart-area"></i> Intelligence &amp; Analytics</h1>
+            <p>Viewing insights for <strong>{{ date_range_label }}</strong></p>
+        </div>
+    </div>
+
+    <!-- ── Fallback alert ──────────────────────────────────── -->
+    {% if fallback_applied %}
+    <div class="ax-fallback">
+        <i class="fas fa-info-circle"></i>
+        <span>{{ fallback_message }}</span>
+    </div>
+    {% endif %}
+
+    <!-- ── Filters ─────────────────────────────────────────── -->
+    <div class="ax-filters">
+        <form method="get">
+            <div>
+                <label>Date Range</label>
+                <select name="range" id="rangeSelect">
+                    <option value="7d" {% if range_param == '7d' %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30d" {% if range_param == '30d' %}selected{% endif %}>Last 30 Days</option>
+                    <option value="90d" {% if range_param == '90d' %}selected{% endif %}>Last 90 Days</option>
+                    <option value="365d" {% if range_param == '365d' %}selected{% endif %}>Last 12 Months</option>
+                    <option value="custom" {% if range_param == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+            </div>
+            <div class="ax-custom-range {% if range_param != 'custom' %}hidden{% endif %}" id="customRange">
+                <div>
+                    <label>From</label>
+                    <input type="date" name="start_date" value="{{ start_date_value }}">
+                </div>
+                <div>
+                    <label>To</label>
+                    <input type="date" name="end_date" value="{{ end_date_value }}">
+                </div>
+            </div>
+            <label class="ax-compare-toggle">
+                <input type="checkbox" name="compare" value="previous" {% if compare_enabled %}checked{% endif %}>
+                Compare previous period
+            </label>
+            <button type="submit" class="ax-btn"><i class="fas fa-sync-alt"></i> Update</button>
+        </form>
+    </div>
+
+    <!-- ── Executive KPI strip ─────────────────────────────── -->
+    <div class="ax-kpi-strip">
+        <div class="ax-kpi kpi-rose">
+            <div class="ax-kpi-icon"><i class="fas fa-clipboard-list"></i></div>
+            <div class="ax-kpi-value">{{ summary_cards.0.value }}</div>
+            <div class="ax-kpi-label">Requests</div>
+            <div class="ax-kpi-sub">~{{ avg_daily_requests }}/day</div>
+        </div>
+        <div class="ax-kpi kpi-emerald">
+            <div class="ax-kpi-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="ax-kpi-value">{{ conversion_rate }}%</div>
+            <div class="ax-kpi-label">Approval Rate</div>
+            <div class="ax-kpi-sub">{{ summary_cards.1.value }} approved</div>
+        </div>
+        <div class="ax-kpi kpi-amber">
+            <div class="ax-kpi-icon"><i class="fas fa-tint"></i></div>
+            <div class="ax-kpi-value">{{ summary_cards.2.value }}</div>
+            <div class="ax-kpi-label">Units Allocated</div>
+            <div class="ax-kpi-sub">ml released</div>
+        </div>
+        <div class="ax-kpi kpi-indigo">
+            <div class="ax-kpi-icon"><i class="fas fa-hand-holding-heart"></i></div>
+            <div class="ax-kpi-value">{{ summary_cards.3.value }}</div>
+            <div class="ax-kpi-label">Units Donated</div>
+            <div class="ax-kpi-sub">~{{ avg_daily_donations }}/day</div>
+        </div>
+        <div class="ax-kpi kpi-cyan">
+            <div class="ax-kpi-icon"><i class="fas fa-balance-scale"></i></div>
+            <div class="ax-kpi-value">{{ fulfillment_ratio }}%</div>
+            <div class="ax-kpi-label">Fulfillment</div>
+            <div class="ax-kpi-sub">Donated vs allocated</div>
+        </div>
+        <div class="ax-kpi kpi-violet">
+            <div class="ax-kpi-icon"><i class="fas fa-user-check"></i></div>
+            <div class="ax-kpi-value">{{ active_donors_count }}</div>
+            <div class="ax-kpi-label">Active Donors</div>
+            <div class="ax-kpi-sub">of {{ total_donors }} registered</div>
+        </div>
+        <div class="ax-kpi kpi-blue">
+            <div class="ax-kpi-icon"><i class="fas fa-warehouse"></i></div>
+            <div class="ax-kpi-value">{{ total_stock_units }}</div>
+            <div class="ax-kpi-label">Stock Reserve</div>
+            <div class="ax-kpi-sub">ml across all groups</div>
+        </div>
+        <div class="ax-kpi kpi-pink">
+            <div class="ax-kpi-icon"><i class="fas fa-hourglass-half"></i></div>
+            <div class="ax-kpi-value">{{ summary_cards.5.value }}</div>
+            <div class="ax-kpi-label">Pending Queue</div>
+            <div class="ax-kpi-sub">{% if urgent_pending_count %}{{ urgent_pending_count }} urgent{% else %}None urgent{% endif %}</div>
+        </div>
+    </div>
+
+    <!-- ── Action Alerts ───────────────────────────────────── -->
+    <div class="ax-alerts">
+        <h3><i class="fas fa-bell"></i> Action Alerts</h3>
+        {% if action_flags %}
+            <ul>
+                {% for item in action_flags %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="ax-alerts-ok"><i class="fas fa-check-circle"></i> All clear — no critical alerts for this window.</p>
+        {% endif %}
+    </div>
+
+    <!-- ── Comparison panel ────────────────────────────────── -->
+    {% if compare_enabled and comparison_rows %}
+    <div class="ax-comparison">
+        <h3><i class="fas fa-exchange-alt"></i> Period-over-Period Comparison</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th>Metric</th><th>Current</th><th>Previous</th><th>&Delta; %</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in comparison_rows %}
+                    <tr>
+                        <td>{{ row.label }}</td>
+                        <td>{{ row.current }}</td>
+                        <td>{{ row.previous }}</td>
+                        <td>
+                            <span class="ax-delta {{ row.trend }}">
+                                {% if row.trend == 'up' %}<i class="fas fa-arrow-up"></i>{% else %}<i class="fas fa-arrow-down"></i>{% endif %}
+                                {{ row.delta }}%
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Visualization Gallery ───────────────────────────── -->
+    <div class="ax-tabs-wrap">
+        <div class="ax-tabs-header">
+            <div>
+                <h2>Visualization Gallery</h2>
+                <p>Explore demand, supply, inventory health, demographics, and community stats.</p>
+            </div>
+            <div class="ax-tabs-nav" id="axTabs">
+                <button type="button" class="ax-tab-btn {% if active_panel == 'overview' %}active{% endif %}" data-panel="overview"><i class="fas fa-th-large"></i> Overview</button>
+                <button type="button" class="ax-tab-btn {% if active_panel == 'operations' %}active{% endif %}" data-panel="operations"><i class="fas fa-cogs"></i> Operations</button>
+                <button type="button" class="ax-tab-btn {% if active_panel == 'inventory' %}active{% endif %}" data-panel="inventory"><i class="fas fa-boxes"></i> Inventory</button>
+                <button type="button" class="ax-tab-btn {% if active_panel == 'demographics' %}active{% endif %}" data-panel="demographics"><i class="fas fa-users"></i> Demographics</button>
+                <button type="button" class="ax-tab-btn {% if active_panel == 'community' %}active{% endif %}" data-panel="community"><i class="fas fa-trophy"></i> Community</button>
+            </div>
+        </div>
+
+        <!-- ════ OVERVIEW ════ -->
+        <section class="ax-panel {% if active_panel == 'overview' %}active{% endif %}" data-panel="overview">
+            <div class="ax-card span-2">
+                <h3>Demand vs Supply Over Time</h3>
+                <p class="ax-card-desc">Daily request volume compared against approved donation flow.</p>
+                <canvas id="timelineChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <div class="d-flex justify-content-between align-items-center flex-wrap" style="gap:8px;">
+                    <div>
+                        <h3>Request Channel Mix</h3>
+                        <p class="ax-card-desc">How requests originate: Patient, Donor, or Quick.</p>
+                    </div>
+                    <div class="chart-toggle" id="channelToggle">
+                        <button type="button" data-mode="counts" class="active">Count</button>
+                        <button type="button" data-mode="units">ml</button>
+                    </div>
+                </div>
+                <canvas id="channelChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Urgency Breakdown</h3>
+                <p class="ax-card-desc">Proportion of urgent vs normal requests in the window.</p>
+                <canvas id="urgencyChart"></canvas>
+            </div>
+        </section>
+
+        <!-- ════ OPERATIONS ════ -->
+        <section class="ax-panel {% if active_panel == 'operations' %}active{% endif %}" data-panel="operations">
+            <div class="ax-card span-2">
+                <h3>Monthly Throughput (Last 6 Months)</h3>
+                <p class="ax-card-desc">Count &amp; volume trends aggregated monthly. Bars = count, Lines = ml.</p>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Weekday Demand Pattern</h3>
+                <p class="ax-card-desc">Ml requested &amp; donated by day of week — spot peak days.</p>
+                <canvas id="weekdayChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Net Movement (Donations &minus; Allocations)</h3>
+                <p class="ax-card-desc">Cumulative surplus/deficit tracking across the window.</p>
+                <canvas id="netFlowChart"></canvas>
+            </div>
+            <div class="ax-card span-2">
+                <h3>Status Velocity Over Time</h3>
+                <p class="ax-card-desc">Daily count of approved, pending, and rejected requests.</p>
+                <canvas id="statusTimelineChart"></canvas>
+            </div>
+        </section>
+
+        <!-- ════ INVENTORY ════ -->
+        <section class="ax-panel {% if active_panel == 'inventory' %}active{% endif %}" data-panel="inventory">
+            <div class="ax-card span-2">
+                <h3>Stock Health Dashboard</h3>
+                <p class="ax-card-desc">Current stock by blood group. Colors indicate risk level: critical, low, adequate, or healthy.</p>
+                <div class="ax-stock-grid">
+                    {% for tile in stock_health_rows %}
+                    <div class="ax-stock-tile {{ tile.health }}">
+                        <div class="ax-stock-bg">{{ tile.bloodgroup }}</div>
+                        <div class="ax-stock-units">{{ tile.units }} ml</div>
+                        <div class="ax-stock-label">{{ tile.health }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="ax-card">
+                <h3>Blood Group Balance</h3>
+                <p class="ax-card-desc">Radar view of requests, donations, and stock per group.</p>
+                <canvas id="bloodGroupChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Approval Mix</h3>
+                <p class="ax-card-desc">Status breakdown (approved / pending / rejected) for requests and donations.</p>
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="ax-card span-2">
+                <h3>Supply-Demand Gap by Blood Group</h3>
+                <p class="ax-card-desc">Positive = demand exceeds donation. Negative = surplus.</p>
+                <canvas id="inventoryGapChart"></canvas>
+            </div>
+            <div class="ax-card span-2">
+                <h3>Inventory Risk Assessment</h3>
+                <p class="ax-card-desc">Detailed risk scoring per blood group with coverage days and gap analysis.</p>
+                <div class="table-responsive">
+                    <table class="ax-risk-table">
+                        <thead>
+                            <tr>
+                                <th>Group</th>
+                                <th>Demand</th>
+                                <th>Donated</th>
+                                <th>Stock</th>
+                                <th>Gap</th>
+                                <th>Coverage</th>
+                                <th>Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in inventory_pressure_rows %}
+                            <tr>
+                                <td><strong>{{ row.bloodgroup }}</strong></td>
+                                <td>{{ row.demand_units|floatformat:0 }} ml</td>
+                                <td>{{ row.donation_units|floatformat:0 }} ml</td>
+                                <td>{{ row.stock_units|floatformat:0 }} ml</td>
+                                <td>{{ row.net_gap|floatformat:0 }} ml</td>
+                                <td>{% if row.coverage_days %}{{ row.coverage_days }} days{% else %}N/A{% endif %}</td>
+                                <td><span class="ax-risk-badge {{ row.risk_level|lower }}">{{ row.risk_level }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ════ DEMOGRAPHICS ════ -->
+        <section class="ax-panel {% if active_panel == 'demographics' %}active{% endif %}" data-panel="demographics">
+            <div class="ax-card">
+                <h3>Donor Blood Group Distribution</h3>
+                <p class="ax-card-desc">Registered donors broken down by their blood type.</p>
+                <canvas id="donorBgChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Donor Gender Split</h3>
+                <p class="ax-card-desc">Gender distribution among approved donors.</p>
+                <canvas id="donorGenderChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Donor Age Distribution</h3>
+                <p class="ax-card-desc">Age group breakdown of the donor pool.</p>
+                <canvas id="donorAgeChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Patient Condition Breakdown</h3>
+                <p class="ax-card-desc">Top conditions/diseases among registered patients.</p>
+                <canvas id="patientDiseaseChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Donor Availability</h3>
+                <p class="ax-card-desc">How many approved donors are currently marked available.</p>
+                <canvas id="donorAvailChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>System Overview</h3>
+                <p class="ax-card-desc">Key registry counts and system metrics.</p>
+                <div class="ax-demo-stats">
+                    <div class="ax-demo-stat">
+                        <div class="ax-demo-val">{{ total_donors }}</div>
+                        <div class="ax-demo-lbl">Donors</div>
+                    </div>
+                    <div class="ax-demo-stat">
+                        <div class="ax-demo-val">{{ total_patients }}</div>
+                        <div class="ax-demo-lbl">Patients</div>
+                    </div>
+                    <div class="ax-demo-stat">
+                        <div class="ax-demo-val">{{ active_donors_count }}</div>
+                        <div class="ax-demo-lbl">Active Donors</div>
+                    </div>
+                    <div class="ax-demo-stat">
+                        <div class="ax-demo-val">{{ total_stock_units }}</div>
+                        <div class="ax-demo-lbl">Stock (ml)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ════ COMMUNITY ════ -->
+        <section class="ax-panel {% if active_panel == 'community' %}active{% endif %}" data-panel="community">
+            <div class="ax-card ax-lb-card span-2">
+                <div class="ax-lb-header">
+                    <div>
+                        <h3>Donor Hall of Fame</h3>
+                        <p class="ax-card-desc">Celebrating the most generous heroes in this window.</p>
+                    </div>
+                    <span class="ax-lb-badge"><i class="fas fa-trophy"></i> Top {{ top_donor_cards|length }}</span>
+                </div>
+                <div class="ax-lb-list">
+                    {% if top_donor_cards %}
+                        {% for donor in top_donor_cards %}
+                        <div class="ax-lb-row {% if donor.rank == 1 %}gold{% endif %}">
+                            <div class="ax-lb-rank">#{{ donor.rank }}</div>
+                            <div class="ax-lb-avatar">
+                                <img src="{{ donor.profile_pic_url }}"
+                                     alt="{{ donor.name }}"
+                                     data-random-src="{{ donor.random_profile_pic_url }}"
+                                     data-placeholder-src="{{ donor.placeholder_avatar_url }}"
+                                     onerror="if(!this.dataset.fallbackApplied){this.dataset.fallbackApplied='1';this.src=this.dataset.randomSrc;return;}this.onerror=null;this.src=this.dataset.placeholderSrc;">
+                            </div>
+                            <div class="ax-lb-info">
+                                <h4>{{ donor.name }}</h4>
+                                <p>{{ donor.bloodgroup }} &bull; {{ donor.donation_count }} donation{{ donor.donation_count|pluralize }}</p>
+                                <span class="ax-lb-meta">
+                                    {% if donor.last_donation %}Last {{ donor.last_donation|date:"d M Y" }}{% else %}Awaiting first{% endif %}
+                                </span>
+                            </div>
+                            <div class="ax-lb-units">
+                                <span>{{ donor.units|floatformat:0 }} ml</span>
+                                <small>Total</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">No donations in this window yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="ax-card">
+                <h3>Top Requesters</h3>
+                <p class="ax-card-desc">Highest volume requesters by units in this window.</p>
+                <canvas id="requesterChart"></canvas>
+            </div>
+            <div class="ax-card">
+                <h3>Feedback Snapshot</h3>
+                <p class="ax-card-desc">Summary of community feedback and satisfaction.</p>
+                <div class="ax-fb-summary">
+                    <div class="ax-fb-stat">
+                        <div class="ax-fb-stat-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div>
+                            <div class="ax-fb-stat-value">{{ feedback_summary.avg_rating }}/5</div>
+                            <div class="ax-fb-stat-label">Average Rating</div>
+                        </div>
+                    </div>
+                    <div class="ax-fb-stat">
+                        <div class="ax-fb-stat-icon" style="background:linear-gradient(135deg,#818cf8,#6366f1);">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div>
+                            <div class="ax-fb-stat-value">{{ feedback_summary.total }}</div>
+                            <div class="ax-fb-stat-label">Total Feedbacks</div>
+                        </div>
+                    </div>
+                    <div class="ax-fb-stat">
+                        <div class="ax-fb-stat-icon" style="background:linear-gradient(135deg,#34d399,#10b981);">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div>
+                            <div class="ax-fb-stat-value">{{ feedback_summary.public_count }}</div>
+                            <div class="ax-fb-stat-label">Public Reviews</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<!-- ── Chart.js ────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    /* ── Parse all data payloads ─────────────────────────── */
+    const timelineData      = JSON.parse('{{ timeline_data|escapejs }}');
+    const netFlowData       = JSON.parse('{{ net_flow_data|escapejs }}');
+    const statusData        = JSON.parse('{{ status_data|escapejs }}');
+    const statusTimelineData= JSON.parse('{{ status_timeline_data|escapejs }}');
+    const bloodGroupData    = JSON.parse('{{ blood_group_data|escapejs }}');
+    const channelMixData    = JSON.parse('{{ channel_mix_data|escapejs }}');
+    const weekdayPatternData= JSON.parse('{{ weekday_pattern_data|escapejs }}');
+    const monthlySummaryData= JSON.parse('{{ monthly_summary_data|escapejs }}');
+    const inventoryGapData  = JSON.parse('{{ inventory_gap_data|escapejs }}');
+    const requesterData     = JSON.parse('{{ top_requesters_data|escapejs }}');
+    const donorBgData       = JSON.parse('{{ donor_bg_data|escapejs }}');
+    const donorGenderData   = JSON.parse('{{ donor_gender_data|escapejs }}');
+    const donorAgeData      = JSON.parse('{{ donor_age_data|escapejs }}');
+    const donorAvailData    = JSON.parse('{{ donor_availability_data|escapejs }}');
+    const patientDiseaseData= JSON.parse('{{ patient_disease_data|escapejs }}');
+    const urgencyData       = JSON.parse('{{ urgency_data|escapejs }}');
+
+    /* ── Shared defaults ─────────────────────────────────── */
+    Chart.defaults.font.family = "'Inter','Segoe UI',system-ui,sans-serif";
+    Chart.defaults.plugins.legend.position = 'bottom';
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.padding = 14;
+    const gridColor = 'rgba(15,23,42,.07)';
+
+    const palette8 = ['#f43f5e','#10b981','#f59e0b','#6366f1','#8b5cf6','#06b6d4','#3b82f6','#ec4899'];
+    const withFallback = (data) => (!data || !data.length) ? [{name:'No data',units:0}] : data;
+
+    /* ── Tab switching ───────────────────────────────────── */
+    const tabNav = document.getElementById('axTabs');
+    if (tabNav) {
+        const btns = tabNav.querySelectorAll('.ax-tab-btn');
+        const panels = document.querySelectorAll('.ax-panel');
+        const activate = (name) => {
+            btns.forEach(b => b.classList.toggle('active', b.dataset.panel === name));
+            panels.forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+        };
+        btns.forEach(b => b.addEventListener('click', () => activate(b.dataset.panel)));
+        activate('{{ active_panel }}');
+    }
+
+    /* ── Custom range toggle ─────────────────────────────── */
+    const rangeSelect = document.getElementById('rangeSelect');
+    const customRange = document.getElementById('customRange');
+    const toggleCustom = () => {
+        if (rangeSelect && customRange) {
+            customRange.classList.toggle('hidden', rangeSelect.value !== 'custom');
+        }
+    };
+    if (rangeSelect) { rangeSelect.addEventListener('change', toggleCustom); toggleCustom(); }
+
+    /* ════════════════════════════════════════════════════════
+       OVERVIEW CHARTS
+       ════════════════════════════════════════════════════════ */
+
+    /* Timeline (Demand vs Supply) */
+    const tlCtx = document.getElementById('timelineChart');
+    if (tlCtx) {
+        new Chart(tlCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: timelineData.labels,
+                datasets: [
+                    { label:'Requests (ml)', data:timelineData.requests, borderColor:'#f43f5e', backgroundColor:'rgba(244,63,94,.1)', tension:.35, fill:true, borderWidth:2.5 },
+                    { label:'Donations (ml)', data:timelineData.donations, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.1)', tension:.35, fill:true, borderWidth:2.5 }
+                ]
+            },
+            options: { responsive:true, maintainAspectRatio:false, scales:{ y:{beginAtZero:true, grid:{color:gridColor}}, x:{grid:{display:false}} } }
+        });
+    }
+
+    /* Channel Mix */
+    const chCtx = document.getElementById('channelChart');
+    let channelChart = null;
+    let currentChMode = 'counts';
+    if (chCtx) {
+        const buildChData = (mode) => ({ labels:channelMixData.labels, datasets:[{ data:channelMixData[mode], backgroundColor:['#6366f1','#ec4899','#14b8a6'] }] });
+        channelChart = new Chart(chCtx.getContext('2d'), {
+            type:'doughnut', data:buildChData('counts'),
+            options:{ responsive:true, maintainAspectRatio:false, cutout:'62%' }
+        });
+        const chToggle = document.getElementById('channelToggle');
+        if (chToggle) {
+            chToggle.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const m = btn.dataset.mode;
+                    if (m === currentChMode) return;
+                    currentChMode = m;
+                    chToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    channelChart.data = buildChData(m);
+                    channelChart.update();
+                });
+            });
+        }
+    }
+
+    /* Urgency */
+    const urgCtx = document.getElementById('urgencyChart');
+    if (urgCtx) {
+        new Chart(urgCtx.getContext('2d'), {
+            type:'doughnut',
+            data:{ labels:urgencyData.labels, datasets:[{ data:urgencyData.values, backgroundColor:['#f43f5e','#10b981'] }] },
+            options:{ responsive:true, maintainAspectRatio:false, cutout:'62%' }
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════
+       OPERATIONS CHARTS
+       ════════════════════════════════════════════════════════ */
+
+    /* Monthly Throughput */
+    const moCtx = document.getElementById('monthlyChart');
+    if (moCtx) {
+        new Chart(moCtx.getContext('2d'), {
+            data:{
+                labels:monthlySummaryData.labels,
+                datasets:[
+                    { type:'bar', label:'Requests (count)', data:monthlySummaryData.request_counts, backgroundColor:'#fb7185', borderRadius:8, yAxisID:'y' },
+                    { type:'bar', label:'Donations (count)', data:monthlySummaryData.donation_counts, backgroundColor:'#34d399', borderRadius:8, yAxisID:'y' },
+                    { type:'line', label:'Requests (ml)', data:monthlySummaryData.request_units, borderColor:'#f97316', backgroundColor:'rgba(249,115,22,.12)', yAxisID:'y1', tension:.3, fill:true },
+                    { type:'line', label:'Donations (ml)', data:monthlySummaryData.donation_units, borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,.12)', yAxisID:'y1', tension:.3, fill:true }
+                ]
+            },
+            options:{
+                responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+                scales:{
+                    y:{ beginAtZero:true, position:'left', title:{display:true,text:'Count'}, grid:{color:gridColor} },
+                    y1:{ beginAtZero:true, position:'right', title:{display:true,text:'ml'}, grid:{drawOnChartArea:false} }
+                }
+            }
+        });
+    }
+
+    /* Weekday Pattern */
+    const wdCtx = document.getElementById('weekdayChart');
+    if (wdCtx) {
+        new Chart(wdCtx.getContext('2d'), {
+            type:'bar',
+            data:{
+                labels:weekdayPatternData.labels,
+                datasets:[
+                    { label:'Requests (ml)', data:weekdayPatternData.requests, backgroundColor:'rgba(244,63,94,.7)', borderRadius:8 },
+                    { label:'Donations (ml)', data:weekdayPatternData.donations, backgroundColor:'rgba(16,185,129,.7)', borderRadius:8 }
+                ]
+            },
+            options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{beginAtZero:true, grid:{color:gridColor}}, x:{grid:{display:false}} } }
+        });
+    }
+
+    /* Net Flow */
+    const nfCtx = document.getElementById('netFlowChart');
+    if (nfCtx) {
+        new Chart(nfCtx.getContext('2d'), {
+            type:'line',
+            data:{ labels:netFlowData.labels, datasets:[{ label:'Cumulative Net (ml)', data:netFlowData.net, borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,.12)', fill:true, tension:.35, borderWidth:2.5 }] },
+            options:{ responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:false, grid:{color:gridColor}}, x:{grid:{display:false}}} }
+        });
+    }
+
+    /* Status Velocity */
+    const svCtx = document.getElementById('statusTimelineChart');
+    if (svCtx) {
+        const statusPalette = {Approved:'#10b981', Pending:'#f59e0b', Rejected:'#f43f5e'};
+        const svDatasets = Object.entries(statusTimelineData.series).map(([status,values]) => ({
+            label:status, data:values, fill:true, tension:.3, backgroundColor:(statusPalette[status]||'#64748b')+'33', borderColor:statusPalette[status]||'#64748b', borderWidth:2
+        }));
+        new Chart(svCtx.getContext('2d'), {
+            type:'line',
+            data:{ labels:statusTimelineData.labels, datasets:svDatasets },
+            options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, scales:{y:{beginAtZero:true, grid:{color:gridColor}}, x:{grid:{display:false}}} }
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════
+       INVENTORY CHARTS
+       ════════════════════════════════════════════════════════ */
+
+    /* Blood Group Radar */
+    const bgCtx = document.getElementById('bloodGroupChart');
+    if (bgCtx) {
+        new Chart(bgCtx.getContext('2d'), {
+            type:'radar',
+            data:{
+                labels:bloodGroupData.labels,
+                datasets:[
+                    { label:'Requests (ml)', data:bloodGroupData.requests, backgroundColor:'rgba(244,63,94,.12)', borderColor:'#f43f5e', borderWidth:2 },
+                    { label:'Donations (ml)', data:bloodGroupData.donations, backgroundColor:'rgba(16,185,129,.12)', borderColor:'#10b981', borderWidth:2 },
+                    { label:'Stock (ml)', data:bloodGroupData.stock, backgroundColor:'rgba(59,130,246,.1)', borderColor:'#3b82f6', borderWidth:2 }
+                ]
+            },
+            options:{ responsive:true, maintainAspectRatio:false, elements:{line:{borderWidth:2}} }
+        });
+    }
+
+    /* Approval Mix */
+    const stCtx = document.getElementById('statusChart');
+    if (stCtx) {
+        new Chart(stCtx.getContext('2d'), {
+            type:'bar',
+            data:{
+                labels:statusData.labels,
+                datasets:[
+                    { label:'Requests', data:statusData.requests, backgroundColor:['#10b981','#f59e0b','#f43f5e'], borderRadius:10 },
+                    { label:'Donations', data:statusData.donations, backgroundColor:['#60a5fa','#f472b6','#fca5a5'], borderRadius:10 }
+                ]
+            },
+            options:{ responsive:true, maintainAspectRatio:false, scales:{x:{stacked:true}, y:{beginAtZero:true,stacked:true, grid:{color:gridColor}}} }
+        });
+    }
+
+    /* Supply-Demand Gap */
+    const igCtx = document.getElementById('inventoryGapChart');
+    if (igCtx) {
+        new Chart(igCtx.getContext('2d'), {
+            type:'bar',
+            data:{
+                labels:inventoryGapData.labels,
+                datasets:[{ label:'Gap (Demand-Donation) ml', data:inventoryGapData.gaps, backgroundColor:inventoryGapData.gaps.map(v => v>0 ? 'rgba(244,63,94,.7)':'rgba(16,185,129,.7)'), borderRadius:10 }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:false, grid:{color:gridColor}}, x:{grid:{display:false}}} }
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════
+       DEMOGRAPHICS CHARTS
+       ════════════════════════════════════════════════════════ */
+
+    /* Donor Blood Group */
+    const dbgCtx = document.getElementById('donorBgChart');
+    if (dbgCtx) {
+        new Chart(dbgCtx.getContext('2d'), {
+            type:'bar',
+            data:{ labels:donorBgData.labels, datasets:[{ label:'Donors', data:donorBgData.values, backgroundColor:palette8, borderRadius:8 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, grid:{color:gridColor}}, x:{grid:{display:false}}} }
+        });
+    }
+
+    /* Donor Gender */
+    const dgCtx = document.getElementById('donorGenderChart');
+    if (dgCtx) {
+        new Chart(dgCtx.getContext('2d'), {
+            type:'doughnut',
+            data:{ labels:donorGenderData.labels, datasets:[{ data:donorGenderData.values, backgroundColor:['#3b82f6','#ec4899','#8b5cf6','#94a3b8'] }] },
+            options:{ responsive:true, maintainAspectRatio:false, cutout:'60%' }
+        });
+    }
+
+    /* Donor Age */
+    const daCtx = document.getElementById('donorAgeChart');
+    if (daCtx) {
+        new Chart(daCtx.getContext('2d'), {
+            type:'bar',
+            data:{ labels:donorAgeData.labels, datasets:[{ label:'Donors', data:donorAgeData.values, backgroundColor:'rgba(99,102,241,.7)', borderRadius:8 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, grid:{color:gridColor}}, x:{grid:{display:false}}} }
+        });
+    }
+
+    /* Patient Disease */
+    const pdCtx = document.getElementById('patientDiseaseChart');
+    if (pdCtx) {
+        const safePD = patientDiseaseData.labels.length ? patientDiseaseData : {labels:['No data'],values:[0]};
+        new Chart(pdCtx.getContext('2d'), {
+            type:'bar',
+            data:{ labels:safePD.labels, datasets:[{ label:'Patients', data:safePD.values, backgroundColor:'rgba(236,72,153,.65)', borderRadius:8 }] },
+            options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, grid:{color:gridColor}}} }
+        });
+    }
+
+    /* Donor Availability */
+    const davCtx = document.getElementById('donorAvailChart');
+    if (davCtx) {
+        new Chart(davCtx.getContext('2d'), {
+            type:'doughnut',
+            data:{ labels:donorAvailData.labels, datasets:[{ data:donorAvailData.values, backgroundColor:['#10b981','#f43f5e'] }] },
+            options:{ responsive:true, maintainAspectRatio:false, cutout:'60%' }
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════
+       COMMUNITY CHARTS
+       ════════════════════════════════════════════════════════ */
+
+    /* Top Requesters */
+    const rqCtx = document.getElementById('requesterChart');
+    if (rqCtx) {
+        const safeRq = withFallback(requesterData);
+        new Chart(rqCtx.getContext('2d'), {
+            type:'bar',
+            data:{ labels:safeRq.map(i=>i.name), datasets:[{ label:'Units Requested', data:safeRq.map(i=>i.units), backgroundColor:'#ec4899', borderRadius:10 }] },
+            options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, grid:{color:gridColor}}} }
+        });
+    }
+
+})();
+</script>
+
+{% endblock content %}

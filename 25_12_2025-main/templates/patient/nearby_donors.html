@@ -1,0 +1,83 @@
+{% extends 'patient/patientbase.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-3"><i class="fas fa-map-marked-alt"></i> Nearby Donors Map</h3>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="get" class="form-row">
+        <div class="form-group col-md-4">
+          <label>Zip/Postal Code</label>
+          <input type="text" class="form-control" name="zipcode" value="{{ zipcode }}" placeholder="Enter area code">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Blood Group</label>
+          <select class="form-control" name="bloodgroup">
+            <option value="">Any</option>
+            {% for bg in blood_groups %}
+              <option value="{{ bg }}" {% if bloodgroup == bg %}selected{% endif %}>{{ bg }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group col-md-4 d-flex align-items-end">
+          <button class="btn btn-primary mr-2" type="submit">Find Donors</button>
+          <a href="{% url 'patient-nearby-donors' %}" class="btn btn-outline-secondary">Reset</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="map" style="height: 340px; border-radius: 12px; overflow: hidden;" class="mb-3"></div>
+
+  <div class="card">
+    <div class="card-header"><strong>Matching Donors ({{ donors|length }})</strong></div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Name</th><th>Blood Group</th><th>Area</th><th>Distance</th><th>ETA</th><th>Verified</th><th>Contact</th></tr></thead>
+        <tbody>
+          {% for donor in donors %}
+            <tr>
+              <td>{{ donor.name }}</td>
+              <td>{{ donor.bloodgroup }}</td>
+              <td>{{ donor.zipcode|default:'-' }}</td>
+              <td>{% if donor.distance_km is not None %}{{ donor.distance_km }} km{% else %}-{% endif %}</td>
+              <td>{{ donor.eta }}</td>
+              <td>{% if donor.location_verified %}Yes{% else %}No{% endif %}</td>
+              <td>{{ donor.mobile }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-center text-muted">No donors found for this filter.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+{{ donors|json_script:"donor-map-data" }}
+<script>
+  const centerLat = parseFloat('{{ map_center.lat }}');
+  const centerLng = parseFloat('{{ map_center.lng }}');
+  const map = L.map('map').setView([centerLat, centerLng], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const donors = JSON.parse(document.getElementById('donor-map-data').textContent);
+  donors.forEach(function(donor){
+    if (donor.latitude !== null && donor.longitude !== null) {
+      L.marker([donor.latitude, donor.longitude]).addTo(map)
+        .bindPopup('<strong>' + donor.name + '</strong><br>' + donor.bloodgroup + ' • ' + (donor.zipcode || '-') + '<br>' + donor.mobile);
+    }
+  });
+</script>
+{% endblock content %}

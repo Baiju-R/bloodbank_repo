@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtualenv
+venv/
+
+# Django local artifacts
+.env
+.env.*
+staticfiles/
+media/
+db.sqlite3
+
+# VCS
+.git/
+.gitignore
+
+# Editor
+.vscode/
+
+# OS
+.DS_Store

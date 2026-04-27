@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="General feedback cover">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <circle cx="1040" cy="140" r="120" fill="rgba(255,255,255,0.14)"/>
+  <circle cx="160" cy="650" r="160" fill="rgba(255,255,255,0.10)"/>
+  <rect x="290" y="220" width="620" height="360" rx="40" fill="#fff"/>
+  <path d="M430 400c0-44 35-80 80-80h170c44 0 80 36 80 80s-36 80-80 80H510c-45 0-80-36-80-80z" fill="#c4b5fd"/>
+  <circle cx="510" cy="400" r="24" fill="#7c3aed"/>
+  <circle cx="595" cy="400" r="24" fill="#7c3aed"/>
+  <circle cx="680" cy="400" r="24" fill="#7c3aed"/>
+  <text x="80" y="110" fill="#fff" font-size="62" font-family="Segoe UI, Arial, sans-serif" font-weight="700">General Feedback</text>
+  <text x="80" y="170" fill="rgba(255,255,255,0.92)" font-size="34" font-family="Segoe UI, Arial, sans-serif">Community voice and experience</text>
+</svg>

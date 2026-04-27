@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: bloodbridge-web
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: "production"
+      DEBUG: "false"
+      DATABASE_URL: "sqlite:////data/db.sqlite3"
+      MIGRATE_ON_STARTUP: "true"
+      # When true, the booking page auto-creates a few near-term slots if none exist.
+      # Set to false if you want admins to create slots manually only.
+      AUTO_SEED_APPOINTMENT_SLOTS: "true"
+      GUNICORN_WORKERS: "3"
+      GUNICORN_TIMEOUT: "60"
+      GUNICORN_ACCESS_LOGFILE: "/app/logs/gunicorn_access.log"
+      GUNICORN_ERROR_LOGFILE: "/app/logs/gunicorn_error.log"
+      LOG_TO_FILE: "true"
+      LOG_FILE_PATH: "/app/logs/django.log"
+      SERVE_MEDIA: "true"
+      # Keep inline task mode unless you deploy Redis+workers.
+      CELERY_TASK_ALWAYS_EAGER: "true"
+    volumes:
+      - ./data:/data
+      - ./media:/app/media
+      - ./logs:/app/logs

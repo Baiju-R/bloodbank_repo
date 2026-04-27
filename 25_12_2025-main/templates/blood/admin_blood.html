@@ -1,0 +1,351 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+{% load widget_tweaks %}
+<style>
+    .xyz{
+        display: table;
+        margin-right: auto;
+        margin-left: auto;
+    }
+    
+    /* Enhanced Blood Bank Styles */
+    .blood-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .dashboard-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 10px;
+    }
+    
+    .dashboard-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .blood-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border: none;
+        overflow: hidden;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .blood-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    
+    .blood-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+    }
+    
+    .blood-card.positive::before {
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+    }
+    
+    .blood-card.negative::before {
+        background: linear-gradient(90deg, #3498db, #2980b9);
+    }
+    
+    .blood-card-body {
+        padding: 30px 20px;
+        text-align: center;
+    }
+    
+    .blood-type {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .blood-icon {
+        color: #e74c3c;
+        font-size: 2rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .blood-unit {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: #27ae60;
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .blood-unit-label {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .update-section {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        margin-top: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .update-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-weight: 600;
+        position: relative;
+    }
+    
+    .update-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+        border-radius: 2px;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #ecf0f1;
+        padding: 12px 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #e74c3c;
+        box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+    }
+    
+    .btn-update {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        color: white;
+    }
+    
+    .btn-update:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+        color: white;
+    }
+    
+    .section-divider {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #e74c3c, transparent);
+        margin: 40px 0;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .blood-card-body {
+            padding: 20px 15px;
+        }
+        
+        .blood-type {
+            font-size: 1.8rem;
+        }
+        
+        .blood-unit {
+            font-size: 2rem;
+        }
+        
+        .update-section {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<div class="blood-dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-heartbeat"></i> Blood Bank Dashboard</h1>
+            <p>Managing Life-Saving Resources</p>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="card blood-card positive">
+                    <div class="card-body blood-card-body">
+                        <div class="blood-type">
+                            A+ <i class="fas fa-tint blood-icon"></i>
+                        </div>
+                        <div class="blood-unit">
+                            {{A1.unit}}
+                        </div>
+                        <div class="blood-unit-label">Units Available</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card blood-card positive">
+                    <div class="card-body blood-card-body">
+                        <div class="blood-type">
+                            B+ <i class="fas fa-tint blood-icon"></i>
+                        </div>
+                        <div class="blood-unit">
+                            {{B1.unit}}
+                        </div>
+                        <div class="blood-unit-label">Units Available</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card blood-card positive">
+                    <div class="card-body blood-card-body">
+                        <div class="blood-type">
+                            O+ <i class="fas fa-tint blood-icon"></i>
+                        </div>
+                        <div class="blood-unit">
+                            {{O1.unit}}
+                        </div>
+                        <div class="blood-unit-label">Units Available</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card blood-card positive">
+                    <div class="card-body blood-card-body">
+                        <div class="blood-type">
+                            AB+ <i class="fas fa-tint blood-icon"></i>
+                        </div>
+                        <div class="blood-unit">
+                            {{AB1.unit}}
+                        </div>
+                        <div class="blood-unit-label">Units Available</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="card blood-card negative">
+                    <div class="card-body blood-card-body">
+                        <div class="blood-type">
+                            A- <i class="fas fa-tint blood-icon"></i>
+                        </div>
+                        <div class="blood-unit">
+                            {{A2.unit}}
+                        </div>
+                        <div class="blood-unit-label">Units Available</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card blood-card negative">
+                    <div class="card-body blood-card-body">
+                        <div class="blood-type">
+                            B- <i class="fas fa-tint blood-icon"></i>
+                        </div>
+                        <div class="blood-unit">
+                            {{B2.unit}}
+                        </div>
+                        <div class="blood-unit-label">Units Available</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card blood-card negative">
+                    <div class="card-body blood-card-body">
+                        <div class="blood-type">
+                            O- <i class="fas fa-tint blood-icon"></i>
+                        </div>
+                        <div class="blood-unit">
+                            {{O2.unit}}
+                        </div>
+                        <div class="blood-unit-label">Units Available</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card blood-card negative">
+                    <div class="card-body blood-card-body">
+                        <div class="blood-type">
+                            AB- <i class="fas fa-tint blood-icon"></i>
+                        </div>
+                        <div class="blood-unit">
+                            {{AB2.unit}}
+                        </div>
+                        <div class="blood-unit-label">Units Available</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="update-section">
+            <h3 class="update-title">Update Blood Unit</h3>
+            <div class="xyz">
+                <form class="form-inline" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group mx-sm-3 mb-6">
+                        <select name="bloodgroup" class="form-control">
+                            <option disabled="disabled" selected="selected">Choose Blood Group</option>
+                            <option>O+</option>
+                            <option>O-</option>
+                            <option>A+</option>
+                            <option>A-</option>
+                            <option>B+</option>
+                            <option>B-</option>
+                            <option>AB+</option>
+                            <option>AB-</option>
+                        </select>
+                    </div>
+                    <div class="form-group mx-sm-3 mb-6">
+                        <input type="number" class="form-control" name="unit" placeholder="Enter Unit Count">
+                    </div>
+                    <button type="submit" class="btn btn-update mb-2">
+                        <i class="fas fa-sync-alt"></i> Update
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,456 @@
+<div class="faq-assistant-shell" data-faq-assistant>
+    <section class="faq-assistant-panel" id="faqAssistantPanel" role="dialog" aria-modal="false" aria-label="FAQ Assistant" data-faq-panel hidden>
+        <header class="faq-assistant-panel__header">
+            <div class="faq-assistant-panel__avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div>
+                <p class="faq-assistant-panel__title">Need a quick answer?</p>
+                <p class="faq-assistant-panel__subtitle">Tap a quick question or open the full assistant.</p>
+            </div>
+            <button class="faq-assistant-icon-btn" type="button" aria-label="Close assistant" data-faq-close>
+                <i class="fas fa-times"></i>
+            </button>
+        </header>
+
+        <form class="faq-assistant-search" data-faq-form>
+            <i class="fas fa-search"></i>
+            <input type="search" name="faq-search" placeholder="Search or ask anything" aria-label="Search FAQs" data-faq-search />
+            <button type="submit">Ask</button>
+        </form>
+
+        <div class="faq-assistant-quick">
+            <span>Popular questions</span>
+            <div class="faq-assistant-chip-group">
+                <button type="button" data-faq-quick="How can I request blood units?">Request blood steps</button>
+                <button type="button" data-faq-quick="How do I donate blood as a donor?">Become a donor</button>
+                <button type="button" data-faq-quick="What happens after my request is approved?">Approval timeline</button>
+                <button type="button" data-faq-quick="Who can I contact for urgent help?">Emergency help</button>
+            </div>
+        </div>
+
+        <div class="faq-assistant-highlights">
+            <article>
+                <p class="label">Track requests</p>
+                <p>See the status of your blood requests in one place.</p>
+            </article>
+            <article>
+                <p class="label">Smart answers</p>
+                <p>Get instant responses from the curated BloodBridge knowledge base.</p>
+            </article>
+        </div>
+
+        <footer class="faq-assistant-footer">
+            <a class="faq-assistant-primary" href="/assistant/" title="Open the full FAQ assistant">
+                Open full assistant
+                <i class="fas fa-arrow-right"></i>
+            </a>
+            <button class="faq-assistant-secondary" type="button" data-faq-close>Close</button>
+        </footer>
+    </section>
+
+    <button class="faq-assistant-launcher" type="button" aria-label="Open FAQ Assistant" aria-expanded="false" aria-controls="faqAssistantPanel" data-faq-trigger>
+        <span class="faq-assistant-launcher__pulse"></span>
+        <span class="faq-assistant-launcher__icon"><i class="fas fa-robot"></i></span>
+        <div class="faq-assistant-launcher__text">
+            <strong>FAQ Assistant</strong>
+            <small>Ask anything, anytime</small>
+        </div>
+    </button>
+</div>
+
+<style>
+    .faq-assistant-shell {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 12px;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
+
+    .faq-assistant-panel {
+        width: min(360px, calc(100vw - 32px));
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 25px 60px rgba(17, 24, 39, 0.25);
+        padding: 20px;
+        border: 1px solid rgba(102, 126, 234, 0.15);
+        transform-origin: bottom right;
+        transform: translateY(12px) scale(0.98);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        background-image: radial-gradient(circle at top right, rgba(102, 126, 234, 0.12), transparent 55%);
+    }
+
+    .faq-assistant-shell--open .faq-assistant-panel {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    .faq-assistant-panel__header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .faq-assistant-panel__avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.3rem;
+        box-shadow: 0 10px 25px rgba(118, 75, 162, 0.35);
+    }
+
+    .faq-assistant-panel__title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .faq-assistant-panel__subtitle {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin: 2px 0 0;
+    }
+
+    .faq-assistant-icon-btn {
+        border: none;
+        background: rgba(15, 23, 42, 0.04);
+        color: #6b7280;
+        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .faq-assistant-icon-btn:hover {
+        background: rgba(15, 23, 42, 0.08);
+        color: #111827;
+    }
+
+    .faq-assistant-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(15, 23, 42, 0.04);
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .faq-assistant-search:focus-within {
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+    }
+
+    .faq-assistant-search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 0.95rem;
+        color: #111827;
+        outline: none;
+    }
+
+    .faq-assistant-search button {
+        border: none;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(118, 75, 162, 0.35);
+    }
+
+    .faq-assistant-search i {
+        color: #9ca3af;
+    }
+
+    .faq-assistant-quick {
+        margin: 18px 0 12px;
+    }
+
+    .faq-assistant-quick > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9ca3af;
+        margin-bottom: 10px;
+    }
+
+    .faq-assistant-chip-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .faq-assistant-chip-group button {
+        border: none;
+        background: rgba(102, 126, 234, 0.1);
+        color: #4c51bf;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s ease;
+    }
+
+    .faq-assistant-chip-group button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+        background: rgba(102, 126, 234, 0.2);
+    }
+
+    .faq-assistant-highlights {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .faq-assistant-highlights article {
+        padding: 12px;
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.035);
+        border: 1px solid rgba(15, 23, 42, 0.05);
+        font-size: 0.85rem;
+        color: #374151;
+    }
+
+    .faq-assistant-highlights .label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+        margin-bottom: 6px;
+    }
+
+    .faq-assistant-footer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .faq-assistant-primary {
+        flex: 1;
+        min-width: 180px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #ec4899, #8b5cf6);
+        color: #fff !important;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 12px 18px;
+        border-radius: 16px;
+        box-shadow: 0 15px 35px rgba(236, 72, 153, 0.4);
+        transition: transform 0.2s ease;
+    }
+
+    .faq-assistant-primary:hover {
+        transform: translateY(-3px);
+    }
+
+    .faq-assistant-secondary {
+        border: none;
+        background: transparent;
+        color: #6b7280;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 10px 12px;
+    }
+
+    .faq-assistant-launcher {
+        border: none;
+        background: #fff;
+        padding: 10px 18px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .faq-assistant-launcher:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 25px 50px rgba(15, 23, 42, 0.25);
+    }
+
+    .faq-assistant-launcher__pulse {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.2), transparent 70%);
+        animation: faqPulse 2.4s infinite;
+    }
+
+    .faq-assistant-launcher__icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.4rem;
+        z-index: 1;
+        box-shadow: 0 12px 25px rgba(118, 75, 162, 0.45);
+    }
+
+    .faq-assistant-launcher__text {
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+        z-index: 1;
+    }
+
+    .faq-assistant-launcher__text strong {
+        font-size: 0.95rem;
+        color: #111827;
+    }
+
+    .faq-assistant-launcher__text small {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    @keyframes faqPulse {
+        0% { opacity: 0.7; transform: scale(0.9); }
+        70% { opacity: 0; transform: scale(1.3); }
+        100% { opacity: 0; transform: scale(1.3); }
+    }
+
+    @media (max-width: 575px) {
+        .faq-assistant-shell {
+            right: 12px;
+            bottom: 12px;
+        }
+
+        .faq-assistant-panel {
+            width: min(320px, calc(100vw - 24px));
+        }
+
+        .faq-assistant-launcher__text strong {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<script>
+    (function() {
+        const shells = document.querySelectorAll('[data-faq-assistant]');
+
+        shells.forEach(shell => {
+            if (shell.dataset.faqBound === 'true') {
+                return;
+            }
+            shell.dataset.faqBound = 'true';
+
+            const panel = shell.querySelector('[data-faq-panel]');
+            const trigger = shell.querySelector('[data-faq-trigger]');
+            const closers = shell.querySelectorAll('[data-faq-close]');
+            const form = shell.querySelector('[data-faq-form]');
+            const input = shell.querySelector('[data-faq-search]');
+            const quickButtons = shell.querySelectorAll('[data-faq-quick]');
+            let isOpen = false;
+
+            const assistantUrl = '/assistant/';
+
+            const openPanel = () => {
+                if (isOpen) return;
+                isOpen = true;
+                shell.classList.add('faq-assistant-shell--open');
+                panel.hidden = false;
+                trigger.setAttribute('aria-expanded', 'true');
+                setTimeout(() => input?.focus(), 120);
+                document.addEventListener('keydown', handleEsc);
+                document.addEventListener('click', handleOutsideClick, { capture: true });
+            };
+
+            const closePanel = () => {
+                if (!isOpen) return;
+                isOpen = false;
+                shell.classList.remove('faq-assistant-shell--open');
+                trigger.setAttribute('aria-expanded', 'false');
+                setTimeout(() => {
+                    if (!isOpen) {
+                        panel.hidden = true;
+                    }
+                }, 220);
+                document.removeEventListener('keydown', handleEsc);
+                document.removeEventListener('click', handleOutsideClick, { capture: true });
+            };
+
+            const handleEsc = (event) => {
+                if (event.key === 'Escape') {
+                    closePanel();
+                    trigger.focus();
+                }
+            };
+
+            const handleOutsideClick = (event) => {
+                if (!shell.contains(event.target)) {
+                    closePanel();
+                }
+            };
+
+            trigger?.addEventListener('click', () => {
+                if (isOpen) {
+                    closePanel();
+                } else {
+                    openPanel();
+                }
+            });
+
+            closers.forEach(btn => btn.addEventListener('click', closePanel));
+
+            form?.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const value = input?.value.trim();
+                if (!value) {
+                    input?.focus();
+                    return;
+                }
+                window.location.href = `${assistantUrl}?q=${encodeURIComponent(value)}`;
+            });
+
+            quickButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const query = button.dataset.faqQuick;
+                    if (query) {
+                        window.location.href = `${assistantUrl}?q=${encodeURIComponent(query)}`;
+                    }
+                });
+            });
+        });
+    })();
+</script>

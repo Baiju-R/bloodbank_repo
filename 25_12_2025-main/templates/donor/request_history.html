@@ -1,0 +1,187 @@
+{% extends 'donor/donorbase.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    .request-history-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 40px 0;
+    }
+    
+    .history-container {
+        background: white;
+        border-radius: 25px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        margin: 0 auto;
+    }
+    
+    .enhanced-table {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        border: none !important;
+    }
+    
+    .enhanced-table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        padding: 15px 12px;
+        border: none;
+    }
+    
+    .enhanced-table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .status-label {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        color: white;
+        display: inline-block;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .status-approved {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-rejected {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .status-pending {
+        background: linear-gradient(45deg, #f39c12, #e67e22);
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+
+    /* Urgency badges */
+    .urgency-badge {
+        padding: 4px 10px; border-radius: 10px; font-weight: 700;
+        font-size: 0.78rem; text-transform: uppercase; display: inline-flex;
+        align-items: center; gap: 4px;
+    }
+    .urgency-urgent { background: #fee2e2; color: #991b1b; }
+    .urgency-moderate { background: #fef3c7; color: #92400e; }
+    .urgency-normal { background: #d1fae5; color: #065f46; }
+
+    /* Fulfillment badges */
+    .fulfill-badge {
+        padding: 4px 10px; border-radius: 10px; font-weight: 600;
+        font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .fulfill-likely { background: #d1fae5; color: #065f46; }
+    .fulfill-possible { background: #e0e7ff; color: #3730a3; }
+    .fulfill-unlikely { background: #fee2e2; color: #991b1b; }
+    .fulfill-done { background: #a7f3d0; color: #064e3b; }
+    .fulfill-declined { background: #fecaca; color: #7f1d1d; }
+    .days-old-hint { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
+</style>
+
+<div class="request-history-dashboard">
+    <div class="container">
+        <div class="history-container">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h1 style="font-size: 2.5rem; font-weight: 700; color: #2c3e50; margin-bottom: 15px;">
+                    <i class="fas fa-list-alt" style="color: #e74c3c;"></i> My Blood Requests
+                </h1>
+                <p style="color: #7f8c8d;">Track your blood request history and status</p>
+            </div>
+
+            {% if requests %}
+                <div class="table-responsive">
+                    <table class="table enhanced-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag"></i> ID</th>
+                                <th><i class="fas fa-user"></i> Patient</th>
+                                <th><i class="fas fa-calendar-alt"></i> Age</th>
+                                <th><i class="fas fa-stethoscope"></i> Reason</th>
+                                <th><i class="fas fa-tint"></i> Blood Group</th>
+                                <th><i class="fas fa-flask"></i> Unit (ml)</th>
+                                <th><i class="fas fa-bolt"></i> Urgency</th>
+                                <th><i class="fas fa-tasks"></i> Fulfillment</th>
+                                <th><i class="fas fa-clock"></i> Date</th>
+                                <th><i class="fas fa-info-circle"></i> Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in requests %}
+                            <tr>
+                                <td style="font-weight: 700; color: #3498db;">#{{ request.id }}</td>
+                                <td style="font-weight: 600; color: #2c3e50;">{{ request.patient_name }}</td>
+                                <td style="color: #8e44ad;">{{ request.patient_age }} yrs</td>
+                                <td style="color: #8e44ad;">{{ request.reason|truncatechars:50 }}</td>
+                                <td><span style="background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 700;">{{ request.bloodgroup }}</span></td>
+                                <td style="color: #27ae60; font-weight: 700;">{{ request.unit }} ml</td>
+                                <td style="text-align:center;">
+                                    {% if request.urgency_label %}
+                                        <span class="urgency-badge {{ request.urgency_css }}">
+                                            {% if request.urgency_css == 'urgency-urgent' %}<i class="fas fa-exclamation-circle"></i>
+                                            {% elif request.urgency_css == 'urgency-moderate' %}<i class="fas fa-clock"></i>
+                                            {% else %}<i class="fas fa-check-circle"></i>{% endif %}
+                                            {{ request.urgency_label }}
+                                        </span>
+                                        {% if request.days_old > 0 %}
+                                            <div class="days-old-hint">{{ request.days_old }}d ago</div>
+                                        {% endif %}
+                                    {% else %}
+                                        <span style="color:#94a3b8; font-size:0.85rem;">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align:center;">
+                                    <span class="fulfill-badge {{ request.fulfillment_css }}">
+                                        {% if request.fulfillment_css == 'fulfill-likely' %}<i class="fas fa-thumbs-up"></i>
+                                        {% elif request.fulfillment_css == 'fulfill-possible' %}<i class="fas fa-question-circle"></i>
+                                        {% elif request.fulfillment_css == 'fulfill-unlikely' %}<i class="fas fa-exclamation-triangle"></i>
+                                        {% elif request.fulfillment_css == 'fulfill-done' %}<i class="fas fa-check-double"></i>
+                                        {% else %}<i class="fas fa-times"></i>{% endif %}
+                                        {{ request.fulfillment_label }}
+                                    </span>
+                                </td>
+                                <td style="color: #5a6c7d;">{{ request.date|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if request.status == 'Approved' %}
+                                        <span class="status-label status-approved">
+                                            <i class="fas fa-check-circle"></i> Approved
+                                        </span>
+                                    {% elif request.status == 'Rejected' %}
+                                        <span class="status-label status-rejected">
+                                            <i class="fas fa-times-circle"></i> Rejected
+                                        </span>
+                                    {% else %}
+                                        <span class="status-label status-pending">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 80px 20px; color: #7f8c8d;">
+                    <i class="fas fa-inbox" style="font-size: 5rem; margin-bottom: 30px; opacity: 0.6; color: #3498db;"></i>
+                    <h4>No Blood Requests Yet</h4>
+                    <p>You haven't made any blood requests yet. Make your first request to get started.</p>
+                    <a href="{% url 'donor-request-blood' %}" style="background: linear-gradient(45deg, #3498db, #2980b9); color: white; padding: 12px 25px; border-radius: 25px; text-decoration: none; font-weight: 600;">
+                        <i class="fas fa-plus-circle"></i> Make First Request
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

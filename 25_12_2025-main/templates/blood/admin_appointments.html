@@ -1,0 +1,102 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-3"><i class="fas fa-calendar-check"></i> Donation Appointments</h3>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card mb-4">
+    <div class="card-header"><strong>Create Appointment Slot</strong></div>
+    <div class="card-body">
+      <form method="post" class="form-row">
+        {% csrf_token %}
+        <input type="hidden" name="intent" value="create_slot">
+        <div class="form-group col-md-3">
+          <label>Start</label>
+          <input type="datetime-local" class="form-control" name="start_at" required>
+        </div>
+        <div class="form-group col-md-3">
+          <label>End</label>
+          <input type="datetime-local" class="form-control" name="end_at" required>
+        </div>
+        <div class="form-group col-md-2">
+          <label>Capacity</label>
+          <input type="number" class="form-control" name="capacity" min="1" value="10" required>
+        </div>
+        <div class="form-group col-md-4">
+          <label>Notes</label>
+          <input type="text" class="form-control" name="notes" maxlength="255" placeholder="Optional note">
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">Create Slot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header"><strong>Upcoming Slots</strong></div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>ID</th><th>Start</th><th>End</th><th>Capacity</th><th>Active</th><th>Notes</th></tr></thead>
+        <tbody>
+          {% for slot in slots %}
+            <tr>
+              <td>#{{ slot.id }}</td>
+              <td>{{ slot.start_at|date:"d M Y H:i" }}</td>
+              <td>{{ slot.end_at|date:"d M Y H:i" }}</td>
+              <td>{{ slot.capacity }}</td>
+              <td>{% if slot.is_active %}Yes{% else %}No{% endif %}</td>
+              <td>{{ slot.notes|default:'-' }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">No slots yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Appointment Requests</strong>
+      <span class="badge badge-warning">Pending: {{ pending_count }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>ID</th><th>Donor</th><th>Requested For</th><th>Current Status</th><th>Update</th></tr></thead>
+        <tbody>
+          {% for item in appointments %}
+            <tr>
+              <td>#{{ item.id }}</td>
+              <td>{{ item.donor.get_name }}</td>
+              <td>{% if item.slot %}{{ item.slot.start_at|date:"d M Y H:i" }}{% elif item.requested_for %}{{ item.requested_for|date:"d M Y H:i" }}{% else %}-{% endif %}</td>
+              <td>{{ item.status }}</td>
+              <td>
+                <form method="post" action="{% url 'admin-appointment-update-status' item.id %}" class="form-inline">
+                  {% csrf_token %}
+                  <select class="form-control form-control-sm mr-2" name="status" required>
+                    {% for status in status_choices %}<option value="{{ status }}">{{ status }}</option>{% endfor %}
+                  </select>
+                  <select class="form-control form-control-sm mr-2" name="slot_id">
+                    <option value="">Keep slot</option>
+                    {% for slot in slots %}<option value="{{ slot.id }}">#{{ slot.id }} • {{ slot.start_at|date:"d M H:i" }}</option>{% endfor %}
+                  </select>
+                  <input class="form-control form-control-sm mr-2" name="notes" maxlength="255" placeholder="Note">
+                  <button class="btn btn-sm btn-success" type="submit">Save</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-center text-muted">No appointment requests yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock content %}

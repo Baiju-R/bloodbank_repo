@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 22px; color: #111827; }
+        h1 { margin: 0 0 6px; font-size: 24px; }
+        .meta { color: #6b7280; margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #d1d5db; padding: 8px; font-size: 13px; }
+        th { background: #eef2ff; text-align: left; }
+        .warn { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:10px; border-radius:8px; margin-bottom:12px; }
+        @media print { .noprint { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="noprint" style="margin-bottom:10px;">
+        <button onclick="window.print()">Print / Save as PDF</button>
+    </div>
+    {% if pdf_dependency_missing %}
+        <div class="warn">PDF library not installed on server. Use browser print (Ctrl+P) and choose Save as PDF.</div>
+    {% endif %}
+    <h1>{{ title }}</h1>
+    <div class="meta">Generated at {{ generated_at|date:"d M Y H:i" }}</div>
+
+    <table>
+        <thead>
+            <tr>
+                {% for col in headers %}<th>{{ col }}</th>{% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr>
+                    {% for val in row %}<td>{{ val }}</td>{% endfor %}
+                </tr>
+            {% empty %}
+                <tr><td colspan="{{ headers|length }}">No data available.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,281 @@
+{% extends 'blood/adminbase.html' %}
+{% load static %}
+{% load math_filters %}
+{% block content %}
+
+<style>
+    .fb-page { padding: 20px 0; }
+    .fb-page-title { font-size: 1.5rem; font-weight: 700; color: #2c3e50; margin-bottom: 4px; }
+    .fb-page-title i { color: #667eea; margin-right: 8px; }
+    .fb-page-sub { color: #6b7280; font-size: 0.88rem; margin-bottom: 16px; }
+
+    .fb-card { background: #fff; border-radius: 14px; border: 1px solid #e5e7eb; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 16px; }
+    .fb-card-head { padding: 12px 18px; border-bottom: 1px solid #f0f0f0; font-weight: 700; color: #334155; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+    .fb-card-head i { color: #667eea; }
+    .fb-card-body { padding: 16px 18px; }
+
+    /* Summary strip */
+    .fb-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .fb-stat { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; text-align: center; background: #f8fafc; }
+    .fb-stat .stat-val { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+    .fb-stat .stat-lbl { font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 700; }
+    .fb-stat .stat-stars { color: #f59e0b; font-size: 1.1rem; }
+
+    /* Rating distribution bar */
+    .rating-dist { display: flex; gap: 6px; align-items: flex-end; }
+    .rating-bar-wrap { flex: 1; text-align: center; }
+    .rating-bar { border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.3s; width: 100%; }
+    .rating-bar-label { font-size: 0.7rem; font-weight: 700; color: #64748b; margin-top: 2px; }
+    .rating-bar-count { font-size: 0.68rem; color: #94a3b8; }
+    .bar-good { background: #10b981; }
+    .bar-mid { background: #f59e0b; }
+    .bar-low { background: #ef4444; }
+    .bar-empty { background: #e5e7eb; }
+
+    /* Filter row */
+    .fb-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .fb-filters select, .fb-filters .fbtn {
+        border-radius: 8px; font-size: 0.82rem; padding: 5px 12px; border: 1px solid #d1d5db;
+        background: #fff; color: #334155; font-weight: 600; cursor: pointer;
+    }
+    .fb-filters .fbtn-active { background: #667eea; color: #fff; border-color: #667eea; }
+    .fb-filters .fbtn:hover { background: #f0f0ff; }
+    .fb-filters .fbtn-active:hover { background: #5a6fd6; }
+
+    /* Feedback cards */
+    .fb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+    .fb-entry {
+        border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;
+        background: #fff; display: flex; flex-direction: column; gap: 10px;
+        transition: box-shadow 0.2s;
+    }
+    .fb-entry:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+    .fb-entry-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .fb-author { font-weight: 800; color: #0f172a; font-size: 0.92rem; }
+    .fb-meta-line { font-size: 0.75rem; color: #64748b; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+    .fb-type-badge {
+        font-size: 0.68rem; font-weight: 700; padding: 1px 7px; border-radius: 6px;
+        text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .fb-type-donation { background: #d1fae5; color: #065f46; }
+    .fb-type-request { background: #dbeafe; color: #1e40af; }
+    .fb-type-general { background: #f1f5f9; color: #475569; }
+
+    .fb-stars { color: #f59e0b; font-size: 0.95rem; letter-spacing: 1px; }
+    .fb-msg {
+        color: #334155; font-size: 0.85rem; line-height: 1.5;
+        white-space: pre-wrap; max-height: 80px; overflow: hidden;
+        position: relative;
+    }
+    .fb-msg-full { max-height: none; }
+    .fb-msg-toggle { font-size: 0.75rem; color: #3b82f6; cursor: pointer; font-weight: 700; align-self: flex-start; }
+    .fb-msg-toggle:hover { text-decoration: underline; }
+
+    .fb-images-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fb-thumb { width: 60px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb; }
+
+    .fb-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid #f0f0f0; padding-top: 10px; }
+    .fb-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+    .fb-pill {
+        font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+        display: inline-flex; align-items: center; gap: 3px;
+    }
+    .fb-pill-public { background: #d1fae5; color: #065f46; }
+    .fb-pill-hidden { background: #fee2e2; color: #991b1b; }
+    .fb-pill-replied { background: #dbeafe; color: #1e40af; }
+    .fb-pill-reaction { background: #fef3c7; color: #92400e; }
+
+    .fb-edit-btn {
+        font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 8px;
+        border: 1px solid #d1d5db; background: #fff; color: #334155;
+        text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+        transition: background 0.2s;
+    }
+    .fb-edit-btn:hover { background: #f0f0ff; color: #334155; text-decoration: none; }
+
+    /* Admin reply preview */
+    .fb-reply-preview {
+        background: rgba(102,126,234,0.06); border: 1px solid rgba(102,126,234,0.15);
+        border-radius: 8px; padding: 8px 10px; font-size: 0.8rem; color: #334155;
+    }
+    .fb-reply-preview strong { font-size: 0.72rem; color: #667eea; display: block; margin-bottom: 2px; }
+
+    .fb-empty { text-align: center; padding: 40px 20px; color: #94a3b8; }
+    .fb-empty i { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+</style>
+
+<div class="container-fluid fb-page">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px;">
+        <div>
+            <h2 class="fb-page-title"><i class="fas fa-comment-dots"></i> Feedback Inbox</h2>
+            <p class="fb-page-sub">Review, filter, and respond to user feedback.</p>
+        </div>
+        <a href="{% url 'admin-dashboard' %}" class="fb-edit-btn" style="padding:8px 16px;"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="fb-summary">
+        <div class="fb-stat">
+            <div class="stat-val">{{ total_count }}</div>
+            <div class="stat-lbl">Total</div>
+        </div>
+        <div class="fb-stat">
+            <div class="stat-val stat-stars">
+                {% if avg_rating >= 1 %}★{% else %}☆{% endif %}{% if avg_rating >= 2 %}★{% else %}☆{% endif %}{% if avg_rating >= 3 %}★{% else %}☆{% endif %}{% if avg_rating >= 4 %}★{% else %}☆{% endif %}{% if avg_rating >= 5 %}★{% else %}☆{% endif %}
+            </div>
+            <div class="stat-lbl">Avg {{ avg_rating }}/5</div>
+        </div>
+        <div class="fb-stat">
+            <div class="stat-val" style="color:#10b981;">{{ public_count }}</div>
+            <div class="stat-lbl">Public</div>
+        </div>
+        <div class="fb-stat">
+            <div class="stat-val" style="color:#3b82f6;">{{ replied_count }}</div>
+            <div class="stat-lbl">Replied</div>
+        </div>
+        <div class="fb-stat">
+            <div class="stat-val" style="color:#f59e0b;">{{ by_type.donation }}</div>
+            <div class="stat-lbl">Donation</div>
+        </div>
+        <div class="fb-stat">
+            <div class="stat-val" style="color:#8b5cf6;">{{ by_type.request }}</div>
+            <div class="stat-lbl">Request</div>
+        </div>
+        <div class="fb-stat">
+            <div class="stat-val" style="color:#64748b;">{{ by_type.general }}</div>
+            <div class="stat-lbl">General</div>
+        </div>
+    </div>
+
+    <!-- Rating Distribution -->
+    <div class="fb-card" style="margin-bottom:16px;">
+        <div class="fb-card-head"><i class="fas fa-star"></i> Rating Distribution</div>
+        <div class="fb-card-body">
+            <div class="rating-dist" style="height:80px;">
+                {% for star, count in rating_dist.items %}
+                <div class="rating-bar-wrap">
+                    {% if total_count > 0 %}
+                    <div class="rating-bar {% if star >= 4 %}bar-good{% elif star == 3 %}bar-mid{% else %}bar-low{% endif %}" data-pct="{{ count|mul:100|div:total_count }}"></div>
+                    {% else %}
+                    <div class="rating-bar bar-empty" data-pct="4"></div>
+                    {% endif %}
+                    <div class="rating-bar-label">{{ star }}★</div>
+                    <div class="rating-bar-count">{{ count }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="fb-card" style="margin-bottom:16px;">
+        <div class="fb-card-body" style="padding:10px 18px;">
+            <form method="get" class="fb-filters" id="fb-filter-form">
+                <span style="font-weight:700;color:#334155;font-size:0.85rem;"><i class="fas fa-filter" style="color:#667eea"></i> Filter:</span>
+                <select name="type" onchange="this.form.submit()">
+                    <option value="">All Types</option>
+                    <option value="DONATION" {% if filter_type == 'DONATION' %}selected{% endif %}>Donation</option>
+                    <option value="REQUEST" {% if filter_type == 'REQUEST' %}selected{% endif %}>Request</option>
+                    <option value="GENERAL" {% if filter_type == 'GENERAL' %}selected{% endif %}>General</option>
+                </select>
+                <select name="rating" onchange="this.form.submit()">
+                    <option value="">All Ratings</option>
+                    <option value="5" {% if filter_rating == '5' %}selected{% endif %}>5 ★</option>
+                    <option value="4" {% if filter_rating == '4' %}selected{% endif %}>4 ★</option>
+                    <option value="3" {% if filter_rating == '3' %}selected{% endif %}>3 ★</option>
+                    <option value="2" {% if filter_rating == '2' %}selected{% endif %}>2 ★</option>
+                    <option value="1" {% if filter_rating == '1' %}selected{% endif %}>1 ★</option>
+                </select>
+                <select name="status" onchange="this.form.submit()">
+                    <option value="">All Status</option>
+                    <option value="public" {% if filter_status == 'public' %}selected{% endif %}>Public</option>
+                    <option value="hidden" {% if filter_status == 'hidden' %}selected{% endif %}>Hidden</option>
+                    <option value="replied" {% if filter_status == 'replied' %}selected{% endif %}>Replied</option>
+                    <option value="unreplied" {% if filter_status == 'unreplied' %}selected{% endif %}>Unreplied</option>
+                </select>
+                {% if filter_type or filter_rating or filter_status %}
+                    <a href="{% url 'admin-feedback-list' %}" class="fbtn" style="color:#ef4444;border-color:#fecdd3;font-size:0.78rem;"><i class="fas fa-times"></i> Clear</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Feedback Cards Grid -->
+    {% if feedbacks %}
+    <div class="fb-grid">
+        {% for fb in feedbacks %}
+        <div class="fb-entry">
+            <div class="fb-entry-head">
+                <div>
+                    <div class="fb-author">{{ fb.author_label }}</div>
+                    <div class="fb-meta-line">
+                        <span class="fb-type-badge fb-type-{{ fb.feedback_for|lower }}">{{ fb.feedback_for }}</span>
+                        <span>{{ fb.created_at|date:"d M Y" }}</span>
+                    </div>
+                </div>
+                <div class="fb-stars" aria-label="rating">
+                    {% star_range as stars %}
+                    {% for i in stars %}
+                        {% if fb.rating >= i %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="fb-msg" id="msg-{{ fb.id }}">{{ fb.message }}</div>
+            {% if fb.message|length > 150 %}
+                <span class="fb-msg-toggle" onclick="document.getElementById('msg-{{ fb.id }}').classList.toggle('fb-msg-full');this.textContent=this.textContent==='Show more'?'Show less':'Show more'">Show more</span>
+            {% endif %}
+
+            {% if fb.image1 or fb.image2 or fb.image3 %}
+            <div class="fb-images-row">
+                {% if fb.image1 %}<a href="{{ fb.image1.url }}" target="_blank"><img class="fb-thumb" src="{{ fb.image1.url }}" alt="img1"></a>{% endif %}
+                {% if fb.image2 %}<a href="{{ fb.image2.url }}" target="_blank"><img class="fb-thumb" src="{{ fb.image2.url }}" alt="img2"></a>{% endif %}
+                {% if fb.image3 %}<a href="{{ fb.image3.url }}" target="_blank"><img class="fb-thumb" src="{{ fb.image3.url }}" alt="img3"></a>{% endif %}
+            </div>
+            {% endif %}
+
+            {% if fb.admin_reply %}
+            <div class="fb-reply-preview">
+                <strong><i class="fas fa-reply"></i> Admin Reply</strong>
+                {{ fb.admin_reply|truncatechars:120 }}
+            </div>
+            {% endif %}
+
+            <div class="fb-footer">
+                <div class="fb-pills">
+                    {% if fb.is_public %}
+                        <span class="fb-pill fb-pill-public"><i class="fas fa-eye"></i> Public</span>
+                    {% else %}
+                        <span class="fb-pill fb-pill-hidden"><i class="fas fa-eye-slash"></i> Hidden</span>
+                    {% endif %}
+                    {% if fb.admin_reply %}
+                        <span class="fb-pill fb-pill-replied"><i class="fas fa-reply"></i> Replied</span>
+                    {% endif %}
+                    {% if fb.admin_reaction %}
+                        <span class="fb-pill fb-pill-reaction">{{ fb.admin_reaction }}</span>
+                    {% endif %}
+                </div>
+                <a class="fb-edit-btn" href="{% url 'admin-feedback-edit' fb.id %}"><i class="fas fa-edit"></i> Reply</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="fb-card">
+        <div class="fb-empty">
+            <i class="fas fa-comment-slash"></i>
+            <h4>No feedback found</h4>
+            <p>{% if filter_type or filter_rating or filter_status %}Try adjusting your filters.{% else %}No feedback submitted yet.{% endif %}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.rating-bar[data-pct]').forEach(function(bar) {
+    bar.style.height = bar.getAttribute('data-pct') + '%';
+});
+</script>
+
+{% endblock content %}

@@ -1,0 +1,564 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e74c3c">
+    <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+    <title>Quick Blood Request - BloodBridge</title>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quick-request-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .quick-request-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+        }
+
+        .quick-request-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+
+        .request-header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .emergency-icon {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 15px;
+            animation: emergencyPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes emergencyPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); filter: brightness(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .request-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .emergency-notice {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin: 20px 30px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        .request-body {
+            padding: 40px 30px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #ecf0f1;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+        }
+
+        .blood-group-select {
+            position: relative;
+        }
+
+        .blood-group-select select {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #ecf0f1;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            background: #f8f9fa;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .blood-group-select::after {
+            content: '\f078';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            pointer-events: none;
+        }
+
+        .btn-submit-request {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border: none;
+            padding: 18px 50px;
+            border-radius: 25px;
+            font-weight: 700;
+            color: white;
+            width: 100%;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-submit-request:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(231, 76, 60, 0.4);
+            color: white;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .emergency-info {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .emergency-info h4 {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .offline-note {
+            margin-top: 12px;
+            background: #eef2ff;
+            color: #3730a3;
+            border: 1px solid #c7d2fe;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .offline-note.show { display: block; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .quick-request-container {
+                margin: 20px;
+                padding: 0;
+            }
+
+            .request-header {
+                padding: 25px 20px;
+            }
+
+            .request-body {
+                padding: 30px 20px;
+            }
+
+            .form-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include "blood/navbar.html" %}
+
+    <div class="quick-request-wrapper">
+        <div class="quick-request-container">
+            <div class="request-header">
+                <div class="emergency-icon">
+                    <i class="fas fa-ambulance"></i>
+                </div>
+                <h2>Emergency Blood Request</h2>
+                <p>Quick request without registration - For urgent medical needs</p>
+            </div>
+
+            <div class="emergency-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>EMERGENCY SERVICE:</strong> This request will be processed immediately by our medical team
+            </div>
+            
+            <div class="request-body">
+                <div class="emergency-info">
+                    <h4><i class="fas fa-clock"></i> 24/7 Emergency Response</h4>
+                    <p>Our team will contact you within 30 minutes of submission. Keep your phone accessible.</p>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="white-space: pre-line;">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST" id="quickRequestForm">
+                    {% csrf_token %}
+                    
+                    <!-- Patient Information Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-user-injured"></i>
+                            Patient Information
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Patient Name <span class="required">*</span></label>
+                                    <input type="text" name="patient_name" class="form-control" placeholder="Full name of patient" value="{{ patient_name|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Patient Age <span class="required">*</span></label>
+                                    <input type="number" name="patient_age" class="form-control" placeholder="Age in years" min="1" max="120" value="{{ patient_age|default:'' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Information Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-heartbeat"></i>
+                            Medical Requirements
+                        </h4>
+                        <div class="form-group">
+                            <label class="form-label">Medical Reason <span class="required">*</span></label>
+                            <textarea name="reason" class="form-control" rows="4" placeholder="Describe the medical emergency, surgery, or condition requiring blood transfusion" required>{{ reason|default:'' }}</textarea>
+                            <div class="help-text">Please provide detailed information for faster processing</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Blood Group Required <span class="required">*</span></label>
+                                    <div class="blood-group-select">
+                                        <select name="bloodgroup" required>
+                                            <option value="" disabled {% if not bloodgroup %}selected{% endif %}>Select Blood Group</option>
+                                            <option value="A+" {% if bloodgroup == 'A+' %}selected{% endif %}>A+</option>
+                                            <option value="A-" {% if bloodgroup == 'A-' %}selected{% endif %}>A-</option>
+                                            <option value="B+" {% if bloodgroup == 'B+' %}selected{% endif %}>B+</option>
+                                            <option value="B-" {% if bloodgroup == 'B-' %}selected{% endif %}>B-</option>
+                                            <option value="AB+" {% if bloodgroup == 'AB+' %}selected{% endif %}>AB+</option>
+                                            <option value="AB-" {% if bloodgroup == 'AB-' %}selected{% endif %}>AB-</option>
+                                            <option value="O+" {% if bloodgroup == 'O+' %}selected{% endif %}>O+</option>
+                                            <option value="O-" {% if bloodgroup == 'O-' %}selected{% endif %}>O-</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Units Required (ml) <span class="required">*</span></label>
+                                    <input type="number" name="unit" class="form-control" placeholder="Amount in ml" min="100" max="500" value="{{ unit|default:'' }}" required>
+                                    <div class="help-text">Standard range: 100ml - 500ml</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Hospital Zip / Postal Code <span class="required">*</span></label>
+                                    <input type="text" name="request_zipcode" class="form-control" placeholder="Enter 4-10 digit code" value="{{ request_zipcode|default:'' }}" required>
+                                    <div class="help-text">Needed so coordinators can route requests to the nearest hospitals</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Section -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-phone"></i>
+                            Emergency Contact Details
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Primary Contact Number <span class="required">*</span></label>
+                                    <input type="tel" name="contact_number" class="form-control" placeholder="Your mobile number" value="{{ contact_number|default:'' }}" required>
+                                    <div class="help-text">We will call this number within 30 minutes</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Emergency Contact (Optional)</label>
+                                    <input type="tel" name="emergency_contact" class="form-control" placeholder="Alternative contact number" value="{{ emergency_contact|default:'' }}">
+                                    <div class="help-text">Backup contact person</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-submit-request" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i> Submit Emergency Request
+                    </button>
+                </form>
+
+                <div id="offlineNote" class="offline-note">
+                    <i class="fas fa-wifi"></i>
+                    Offline mode: if internet drops, your request is saved locally and auto-submitted when back online.
+                </div>
+
+                <div style="text-align: center; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                    <p style="margin: 0; color: #7f8c8d;">Have an account? <a href="/patient/patientlogin/" style="color: #e74c3c; font-weight: 600;">Login here</a> | <a href="/patient/patientsignup/" style="color: #e74c3c; font-weight: 600;">Create account</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "blood/footer.html" %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('quickRequestForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const offlineNote = document.getElementById('offlineNote');
+            const OFFLINE_QUEUE_KEY = 'bloodbridge.quickRequestQueue';
+
+            function getCookie(name) {
+                const cookieValue = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith(name + '='));
+                return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : '';
+            }
+
+            function getQueue() {
+                try {
+                    const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
+                    return raw ? JSON.parse(raw) : [];
+                } catch (_) {
+                    return [];
+                }
+            }
+
+            function setQueue(items) {
+                localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(items));
+            }
+
+            function collectPayload() {
+                const formData = new FormData(form);
+                const payload = {};
+                formData.forEach((value, key) => {
+                    payload[key] = value;
+                });
+                return payload;
+            }
+
+            async function flushQueue() {
+                if (!navigator.onLine) return;
+                const queue = getQueue();
+                if (!queue.length) return;
+
+                const csrfToken = getCookie('csrftoken') || form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
+                const remaining = [];
+
+                for (const item of queue) {
+                    try {
+                        const body = new URLSearchParams(item.payload || {});
+                        if (!body.get('csrfmiddlewaretoken') && csrfToken) {
+                            body.set('csrfmiddlewaretoken', csrfToken);
+                        }
+
+                        const response = await fetch(window.location.pathname, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-CSRFToken': csrfToken,
+                            },
+                            body: body.toString(),
+                            credentials: 'same-origin',
+                        });
+
+                        if (!response.ok) {
+                            remaining.push(item);
+                        }
+                    } catch (_) {
+                        remaining.push(item);
+                    }
+                }
+
+                setQueue(remaining);
+            }
+
+            function queueOfflineRequest() {
+                const queue = getQueue();
+                queue.push({
+                    payload: collectPayload(),
+                    queuedAt: new Date().toISOString(),
+                });
+                setQueue(queue);
+            }
+
+            function updateOfflineNote() {
+                if (!offlineNote) return;
+                if (!navigator.onLine || getQueue().length > 0) {
+                    offlineNote.classList.add('show');
+                } else {
+                    offlineNote.classList.remove('show');
+                }
+            }
+            
+            // Form validation
+            form.addEventListener('submit', function(e) {
+                const requiredFields = form.querySelectorAll('[required]');
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.style.borderColor = '#e74c3c';
+                    } else {
+                        field.style.borderColor = '#ecf0f1';
+                    }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields.');
+                    return;
+                }
+
+                if (!navigator.onLine) {
+                    e.preventDefault();
+                    queueOfflineRequest();
+                    updateOfflineNote();
+                    alert('You are offline. Request saved locally and will auto-submit when internet returns.');
+                    return;
+                }
+                
+                // Show loading state
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting Emergency Request...';
+                submitBtn.disabled = true;
+            });
+            
+            // Real-time validation
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.hasAttribute('required') && !this.value.trim()) {
+                        this.style.borderColor = '#e74c3c';
+                    } else {
+                        this.style.borderColor = '#ecf0f1';
+                    }
+                });
+                
+                input.addEventListener('input', function() {
+                    if (this.style.borderColor === 'rgb(231, 76, 60)') {
+                        this.style.borderColor = '#ecf0f1';
+                    }
+                });
+            });
+
+            window.addEventListener('online', function() {
+                flushQueue().finally(updateOfflineNote);
+            });
+
+            window.addEventListener('offline', updateOfflineNote);
+
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/service-worker.js').catch(function() {});
+                });
+            }
+
+            updateOfflineNote();
+            flushQueue();
+        });
+    </script>
+</body>
+</html>

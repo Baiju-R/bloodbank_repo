@@ -1,0 +1,42 @@
+name: Deploy Security Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  django-deploy-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django deploy security check
+        env:
+          ENVIRONMENT: production
+          DEBUG: "False"
+          SECRET_KEY: "ci-secure-key-please-override-in-real-prod-1234567890"
+          ALLOWED_HOSTS: "example.com"
+        run: |
+          python manage.py check --deploy --fail-level WARNING
+
+      - name: Smoke checks
+        env:
+          ENVIRONMENT: development
+          DEBUG: "True"
+        run: |
+          python manage.py check
+          python manage.py test blood.tests.test_sms -v 1

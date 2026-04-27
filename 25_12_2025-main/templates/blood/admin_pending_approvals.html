@@ -1,0 +1,158 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    .approvals-page { padding: 20px 0; }
+    .approvals-page .page-title {
+        font-size: 1.6rem; font-weight: 700; color: #2c3e50; margin-bottom: 25px;
+    }
+    .approvals-page .page-title i { color: #667eea; margin-right: 8px; }
+    .section-card {
+        background: #fff; border-radius: 12px; padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+    }
+    .section-header {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 1.05rem; font-weight: 600; color: #2c3e50;
+        margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee;
+    }
+    .section-header .badge-sm {
+        background: #e74c3c; color: #fff; border-radius: 10px;
+        padding: 1px 8px; font-size: 0.75rem; font-weight: 700; min-width: 20px; text-align: center;
+    }
+    .section-header .badge-sm.zero { background: #27ae60; }
+    .compact-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .compact-table th {
+        background: #f8f9fa; color: #6c757d; font-weight: 600; font-size: 0.78rem;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 6px 10px; border-bottom: 2px solid #dee2e6; text-align: left; white-space: nowrap;
+    }
+    .compact-table td {
+        padding: 7px 10px; border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle; white-space: nowrap;
+    }
+    .compact-table tr:hover td { background: #f8f9fe; }
+    .compact-table .name-cell { font-weight: 600; color: #2c3e50; }
+    .compact-table .text-muted-sm { color: #95a5a6; font-size: 0.82rem; }
+    .badge-blood {
+        background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 6px;
+        font-weight: 600; font-size: 0.8rem;
+    }
+    .badge-status {
+        padding: 2px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+    }
+    .badge-uploaded { background: #d1fae5; color: #065f46; }
+    .badge-missing { background: #fee2e2; color: #991b1b; }
+    .badge-unverified { background: #fef3c7; color: #92400e; }
+    .btn-sm-action {
+        padding: 3px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+        border: none; color: #fff; text-decoration: none; display: inline-block;
+    }
+    .btn-sm-action.review { background: #3b82f6; }
+    .btn-sm-action.review:hover { background: #2563eb; color: #fff; }
+    .btn-sm-action.verify { background: #10b981; }
+    .btn-sm-action.verify:hover { background: #059669; color: #fff; }
+    .empty-msg { text-align: center; padding: 16px; color: #95a5a6; font-size: 0.9rem; }
+    .empty-msg i { margin-right: 6px; color: #27ae60; }
+</style>
+
+<div class="container-fluid approvals-page">
+    <h2 class="page-title"><i class="fas fa-user-check"></i> Pending Approvals</h2>
+
+    <!-- Pending Donors -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-hand-holding-heart" style="color:#27ae60"></i>
+            Donor Registrations
+            <span class="badge-sm {% if not pending_donors %}zero{% endif %}">{{ pending_donors|length }}</span>
+        </div>
+        {% if pending_donors %}
+        <table class="compact-table">
+            <thead><tr>
+                <th>Name</th><th>Blood</th><th>Phone</th><th>Aadhaar</th><th>Location</th><th>Registered</th><th>Report</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for donor in pending_donors %}
+            <tr>
+                <td class="name-cell">{{ donor.get_name }}</td>
+                <td><span class="badge-blood">{{ donor.bloodgroup }}</span></td>
+                <td>{{ donor.mobile }}</td>
+                <td class="text-muted-sm">{{ donor.aadhaar_number|default:"-" }}</td>
+                <td class="text-muted-sm">{{ donor.address|truncatechars:30 }}</td>
+                <td class="text-muted-sm">{{ donor.user.date_joined|date:"d M Y" }}</td>
+                <td>{% if donor.latest_report_cached %}<span class="badge-status badge-uploaded">Uploaded</span>{% else %}<span class="badge-status badge-missing">None</span>{% endif %}</td>
+                <td><a href="{% url 'admin-approve-donor' donor.id %}" class="btn-sm-action review">Review</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-msg"><i class="fas fa-check-circle"></i> No pending donor registrations</div>
+        {% endif %}
+    </div>
+
+    <!-- Pending Patients -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-user-injured" style="color:#3498db"></i>
+            Patient Registrations
+            <span class="badge-sm {% if not pending_patients %}zero{% endif %}">{{ pending_patients|length }}</span>
+        </div>
+        {% if pending_patients %}
+        <table class="compact-table">
+            <thead><tr>
+                <th>Name</th><th>Blood</th><th>Phone</th><th>Aadhaar</th><th>Location</th><th>Registered</th><th>Prescription</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for patient in pending_patients %}
+            <tr>
+                <td class="name-cell">{{ patient.get_name }}</td>
+                <td><span class="badge-blood">{{ patient.bloodgroup }}</span></td>
+                <td>{{ patient.mobile }}</td>
+                <td class="text-muted-sm">{{ patient.aadhaar_number|default:"-" }}</td>
+                <td class="text-muted-sm">{{ patient.address|truncatechars:30 }}</td>
+                <td class="text-muted-sm">{{ patient.user.date_joined|date:"d M Y" }}</td>
+                <td>{% if patient.doctor_prescription %}<span class="badge-status badge-uploaded">Uploaded</span>{% else %}<span class="badge-status badge-missing">None</span>{% endif %}</td>
+                <td><a href="{% url 'admin-approve-patient' patient.id %}" class="btn-sm-action review">Review</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-msg"><i class="fas fa-check-circle"></i> No pending patient registrations</div>
+        {% endif %}
+    </div>
+
+    <!-- Pending Medical Report Verifications -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-file-medical" style="color:#e67e22"></i>
+            Medical Reports Pending Verification
+            <span class="badge-sm {% if not pending_reports %}zero{% endif %}">{{ pending_reports|length }}</span>
+        </div>
+        {% if pending_reports %}
+        <table class="compact-table">
+            <thead><tr>
+                <th>Donor</th><th>Blood</th><th>File</th><th>Uploaded</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for report in pending_reports %}
+            <tr>
+                <td class="name-cell">{{ report.donor.get_name }}</td>
+                <td><span class="badge-blood">{{ report.donor.bloodgroup }}</span></td>
+                <td class="text-muted-sm">{{ report.document_name|truncatechars:30 }}</td>
+                <td class="text-muted-sm">{{ report.uploaded_at|date:"d M Y H:i" }}</td>
+                <td><span class="badge-status badge-unverified">Pending verification</span></td>
+                <td><a href="{% url 'admin-verify-report' report.id %}" class="btn-sm-action verify">Verify</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-msg"><i class="fas fa-check-circle"></i> All medical reports are verified</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Submitted - BloodBridge</title>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quick-request-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .quick-request-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .quick-request-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+        }
+
+        .request-header {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            padding: 40px 30px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: white;
+            margin-bottom: 20px;
+            animation: successPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); filter: brightness(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .request-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .request-body {
+            padding: 40px 30px;
+        }
+        
+        .request-details {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .detail-value {
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+        
+        .priority-notice {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    {% include "blood/navbar.html" %}
+
+    <div class="quick-request-wrapper">
+        <div class="quick-request-container">
+            <div class="request-header">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>Request Submitted Successfully!</h2>
+                <p>Your emergency blood request has been received and is being processed</p>
+            </div>
+            
+            <div class="request-body">
+                <div class="priority-notice">
+                    <i class="fas fa-bolt"></i>
+                    <strong>PRIORITY REQUEST:</strong> Our medical team will contact you within 30 minutes
+                </div>
+
+                <div class="request-details">
+                    <h4 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">
+                        <i class="fas fa-clipboard-list"></i> Request Details
+                    </h4>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Request ID:</span>
+                        <span class="detail-value" style="color: #e74c3c; font-weight: 700; font-family: monospace;">#{{ request_id }}</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Patient Name:</span>
+                        <span class="detail-value">{{ blood_request.patient_name }}</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Age:</span>
+                        <span class="detail-value">{{ blood_request.patient_age }} years</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Blood Group:</span>
+                        <span class="detail-value" style="color: #e74c3c; font-weight: 700;">{{ blood_request.bloodgroup }}</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Units Required:</span>
+                        <span class="detail-value" style="color: #27ae60; font-weight: 700;">{{ blood_request.unit }}ml</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Request Date:</span>
+                        <span class="detail-value">{{ blood_request.date|date:"M d, Y" }}</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value" style="color: #f39c12; font-weight: 700;">{{ blood_request.status }}</span>
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(45deg, #3498db, #2980b9); color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 20px 0;">
+                    <h4><i class="fas fa-info-circle"></i> What Happens Next?</h4>
+                    <ul style="list-style: none; padding: 0; margin: 15px 0 0 0;">
+                        <li style="margin: 10px 0;"><i class="fas fa-phone"></i> We'll call you within 30 minutes</li>
+                        <li style="margin: 10px 0;"><i class="fas fa-search"></i> Our team will check blood availability</li>
+                        <li style="margin: 10px 0;"><i class="fas fa-ambulance"></i> Arrange immediate delivery if available</li>
+                        <li style="margin: 10px 0;"><i class="fas fa-users"></i> Connect you with donors if needed</li>
+                    </ul>
+                </div>
+
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+                    <a href="/" class="btn" style="background: linear-gradient(45deg, #3498db, #2980b9); color: white; padding: 12px 25px; border-radius: 20px; text-decoration: none; font-weight: 600;">
+                        <i class="fas fa-home"></i> Back to Home
+                    </a>
+                    <a href="{% url 'quick-request' %}" class="btn" style="background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; padding: 12px 25px; border-radius: 20px; text-decoration: none; font-weight: 600;">
+                        <i class="fas fa-plus"></i> Make Another Request
+                    </a>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 15px;">
+                    <h5 style="color: #2c3e50; margin-bottom: 15px;">Emergency Contact</h5>
+                    <p style="margin: 5px 0; color: #7f8c8d;"><i class="fas fa-phone"></i> Emergency Hotline: <strong>911</strong></p>
+                    <p style="margin: 5px 0; color: #7f8c8d;"><i class="fas fa-envelope"></i> Email: <strong>emergency@bloodbridge.com</strong></p>
+                    <p style="margin: 5px 0; color: #7f8c8d;"><i class="fas fa-clock"></i> 24/7 Support Available</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "blood/footer.html" %}
+</body>
+</html>

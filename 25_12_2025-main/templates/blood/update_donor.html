@@ -1,0 +1,263 @@
+{% extends 'blood/adminbase.html' %}
+{% load widget_tweaks %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Update Donor</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h4>User Information</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            {% render_field userForm.first_name class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            {% render_field userForm.last_name class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Username</label>
+                    {% render_field userForm.username class="form-control" %}
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    {% render_field userForm.email class="form-control" %}
+                </div>
+
+                <h4>Donor Information</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Blood Group</label>
+                            {% render_field donorForm.bloodgroup class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Mobile</label>
+                            {% render_field donorForm.mobile class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Address</label>
+                    {% render_field donorForm.address class="form-control" %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Zipcode</label>
+                            {% render_field donorForm.zipcode class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Availability</label>
+                            <div class="form-check">
+                                {% render_field donorForm.is_available class="form-check-input" %}
+                                <label class="form-check-label" for="id_is_available">Available for requests</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Latitude</label>
+                            {% render_field donorForm.latitude class="form-control" placeholder="12.971599" %}
+                            <small class="form-text text-muted">Required with longitude to place this donor on the map.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Longitude</label>
+                            {% render_field donorForm.longitude class="form-control" placeholder="77.594566" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <button type="button"
+                        class="btn btn-outline-primary btn-sm js-geo-button"
+                        data-lat-selector="#id_latitude"
+                        data-lng-selector="#id_longitude"
+                        data-status-target="#geoStatusAdmin">
+                        <i class="fas fa-location-arrow"></i> Use my current location
+                    </button>
+                    <small id="geoStatusAdmin" class="d-block mt-2 text-muted">Ideal when editing a donor standing beside you.</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Profile Picture</label>
+                    {% render_field donorForm.profile_pic class="form-control-file" %}
+                </div>
+
+                <h4 class="mt-4">Medical / Eligibility</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Sex</label>
+                            {% render_field donorForm.sex class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            {% render_field donorForm.date_of_birth class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Weight (kg)</label>
+                            {% render_field donorForm.weight_kg class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Hemoglobin (g/dL)</label>
+                            {% render_field donorForm.hemoglobin_g_dl class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>BP Systolic</label>
+                            {% render_field donorForm.blood_pressure_systolic class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>BP Diastolic</label>
+                            {% render_field donorForm.blood_pressure_diastolic class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="form-check">
+                                {% render_field donorForm.has_chronic_disease class="form-check-input" %}
+                                <label class="form-check-label" for="id_has_chronic_disease">Has chronic disease</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Chronic disease details</label>
+                            {% render_field donorForm.chronic_disease_details class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="form-check">
+                                {% render_field donorForm.on_medication class="form-check-input" %}
+                                <label class="form-check-label" for="id_on_medication">On medication</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Medication details</label>
+                            {% render_field donorForm.medication_details class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="form-check">
+                                {% render_field donorForm.smokes class="form-check-input" %}
+                                <label class="form-check-label" for="id_smokes">Smokes</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Last donated at</label>
+                            {% render_field donorForm.last_donated_at class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update Donor</button>
+                <a href="/admin-donor" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const geoButtons = document.querySelectorAll('.js-geo-button');
+        geoButtons.forEach(button => {
+            const latInput = document.querySelector(button.dataset.latSelector);
+            const lngInput = document.querySelector(button.dataset.lngSelector);
+            const statusEl = document.querySelector(button.dataset.statusTarget);
+            if (!latInput || !lngInput || !statusEl) {
+                return;
+            }
+
+            button.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    statusEl.textContent = 'Location services are unavailable in this browser.';
+                    statusEl.classList.add('text-danger');
+                    return;
+                }
+
+                statusEl.textContent = 'Fetching coordinates…';
+                statusEl.classList.remove('text-danger');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+
+                const resetButton = () => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-location-arrow"></i> Use my current location';
+                };
+
+                navigator.geolocation.getCurrentPosition((position) => {
+                    latInput.value = position.coords.latitude.toFixed(6);
+                    lngInput.value = position.coords.longitude.toFixed(6);
+                    statusEl.textContent = 'Done! Coordinates copied into the form.';
+                    statusEl.classList.remove('text-danger');
+                    statusEl.classList.add('text-success');
+                    resetButton();
+                }, (error) => {
+                    const message = {
+                        1: 'Permission denied. Allow access to autofill, or type it manually.',
+                        2: 'Position unavailable. Try again outdoors.',
+                        3: 'Timed out. Please retry.'
+                    }[error.code] || 'Unable to retrieve location.';
+                    statusEl.textContent = message;
+                    statusEl.classList.add('text-danger');
+                    resetButton();
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            });
+        });
+    });
+</script>
+{% endblock extra_scripts %}

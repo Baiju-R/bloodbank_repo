@@ -1,0 +1,86 @@
+/* Global responsive and UX enhancements.
+   Keep this file small and non-invasive so it can layer on top of existing inline CSS. */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Prevent accidental horizontal overflow from wide shadows/transforms */
+.wrapper,
+.main-content,
+.main_content {
+  max-width: 100%;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Improve horizontal scrolling on small devices for wide tables */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Common wrappers used across dashboards */
+.table-wrapper,
+.table-container,
+.report-body {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Many pages render dense admin tables; ensure they don't squish into unreadable columns. */
+.table-responsive > .table,
+.table-responsive > table {
+  min-width: 640px;
+}
+
+@media (max-width: 576px) {
+  .table-responsive > .table,
+  .table-responsive > table {
+    min-width: 520px;
+  }
+}
+
+/* Better tap targets on touch devices */
+@media (pointer: coarse) {
+  .btn,
+  .form-control,
+  .custom-select,
+  .nav-link {
+    min-height: 44px;
+  }
+}
+
+/* Prevent nav items from breaking awkwardly */
+.navbar .nav-link {
+  white-space: nowrap;
+}
+
+/* Make long card/table sections breathe on small screens */
+@media (max-width: 576px) {
+  .container,
+  .container-fluid {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Homepage CTA buttons should stack nicely */
+  .cta-buttons {
+    gap: 12px;
+  }
+
+  .cta-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}

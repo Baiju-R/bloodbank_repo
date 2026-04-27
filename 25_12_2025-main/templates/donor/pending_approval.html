@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Pending - BloodBridge</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+        .pending-card {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            overflow: hidden;
+            animation: slideIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(50px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .pending-header {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            padding: 50px 30px;
+            color: white;
+        }
+        .pending-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .pending-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .pending-header p { font-weight: 500; opacity: 0.95; }
+        .pending-body {
+            padding: 40px 35px;
+        }
+        .status-timeline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .timeline-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .timeline-circle {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .timeline-circle.done {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+        .timeline-circle.active {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        .timeline-circle.pending {
+            background: #ecf0f1;
+            color: #bdc3c7;
+        }
+        .timeline-label { font-size: 0.8rem; font-weight: 600; color: #7f8c8d; }
+        .timeline-line { width: 40px; height: 3px; background: #ecf0f1; margin-bottom: 25px; }
+        .timeline-line.done { background: #27ae60; }
+        .info-box {
+            background: linear-gradient(135deg, #fef9e7, #fdf2e9);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f39c12;
+        }
+        .info-box h4 { color: #e67e22; font-weight: 700; margin-bottom: 10px; }
+        .info-box p { color: #7f8c8d; margin-bottom: 0; line-height: 1.6; }
+        .action-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-home {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-home:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(102,126,234,0.3); color: white; text-decoration: none; }
+        .btn-login {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-login:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(39,174,96,0.3); color: white; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="pending-card">
+        <div class="pending-header">
+            <div class="pending-icon">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <h1>Registration Submitted!</h1>
+            <p>Your donor account is pending admin approval</p>
+        </div>
+        <div class="pending-body">
+            <div class="status-timeline">
+                <div class="timeline-step">
+                    <div class="timeline-circle done"><i class="fas fa-check"></i></div>
+                    <span class="timeline-label">Signed Up</span>
+                </div>
+                <div class="timeline-line done"></div>
+                <div class="timeline-step">
+                    <div class="timeline-circle done"><i class="fas fa-check"></i></div>
+                    <span class="timeline-label">Report Uploaded</span>
+                </div>
+                <div class="timeline-line"></div>
+                <div class="timeline-step">
+                    <div class="timeline-circle active"><i class="fas fa-clock"></i></div>
+                    <span class="timeline-label">Admin Review</span>
+                </div>
+                <div class="timeline-line"></div>
+                <div class="timeline-step">
+                    <div class="timeline-circle pending"><i class="fas fa-user-check"></i></div>
+                    <span class="timeline-label">Approved</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h4><i class="fas fa-info-circle"></i> What happens next?</h4>
+                <p>
+                    An administrator will review your registration details, medical report, and Aadhaar information.
+                    Once approved, you will receive a welcome message and can log in to start donating blood.
+                    This typically takes 1-2 business days.
+                </p>
+            </div>
+
+            <div class="action-links">
+                <a href="/" class="btn-home"><i class="fas fa-home"></i> Go to Home</a>
+                <a href="{% url 'donorlogin' %}" class="btn-login"><i class="fas fa-sign-in-alt"></i> Try Login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,308 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+<style>
+    .leadership-shell {
+        padding: 10px 0 50px;
+        color: #0f172a;
+    }
+    .leadership-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .leadership-head h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        color: #111827;
+    }
+    .leadership-head p {
+        margin: 6px 0 0;
+        color: #475569;
+    }
+    .leaderboard-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .stat-card {
+        background: #fff;
+        border-radius: 22px;
+        padding: 20px;
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.7);
+    }
+    .stat-card span {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .stat-card h3 {
+        margin: 12px 0 0;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+    }
+    .hero-card {
+        border-radius: 26px;
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(79, 70, 229, 0.08));
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-height: 140px;
+    }
+    .hero-card.rank-1 {
+        background: linear-gradient(135deg, #facc15, #f97316);
+        color: #78350f;
+        box-shadow: 0 30px 50px rgba(249, 115, 22, 0.25);
+        border: none;
+    }
+    .hero-rank {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #4f46e5;
+        min-width: 50px;
+        text-align: center;
+    }
+    .hero-card.rank-1 .hero-rank { color: #b45309; }
+    .hero-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        background: #fff;
+    }
+    .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-info h4 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+    .hero-info p { margin: 4px 0 0; color: rgba(15, 23, 42, 0.75); font-size: 0.9rem; }
+    .hero-card.rank-1 .hero-info p { color: rgba(120, 53, 15, 0.9); }
+    .leadership-grid {
+        margin-top: 32px;
+        display: grid;
+        grid-template-columns: minmax(0, 2.5fr) minmax(0, 1fr);
+        gap: 24px;
+    }
+    .panel-card {
+        background: #fff;
+        border-radius: 28px;
+        padding: 24px;
+        box-shadow: 0 25px 45px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .panel-card h3 {
+        margin-bottom: 18px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    .member-row {
+        display: grid;
+        grid-template-columns: 60px 1fr 120px 130px;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+        align-items: center;
+    }
+    .member-row:last-child { border-bottom: none; }
+    .member-rank { font-size: 1.3rem; font-weight: 700; color: #4f46e5; }
+    .member-row.top-spot .member-rank { color: #f97316; }
+    .member-core { display: flex; gap: 12px; align-items: center; }
+    .member-core .avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 2px solid rgba(226, 232, 240, 0.8);
+    }
+    .member-core .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .member-core h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+    .member-core small { color: #94a3b8; font-weight: 600; }
+    .member-units { font-weight: 700; color: #111827; }
+    .member-donations { color: #94a3b8; font-size: 0.9rem; }
+    .member-date { color: #64748b; font-size: 0.85rem; }
+    .recent-item {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    }
+    .recent-item:last-child { border-bottom: none; }
+    .recent-item strong { display: block; font-size: 0.95rem; }
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(79, 70, 229, 0.12);
+        color: #4f46e5;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .empty-state {
+        background: rgba(248, 250, 252, 0.8);
+        border: 1px dashed rgba(148, 163, 184, 0.8);
+        border-radius: 24px;
+        padding: 30px;
+        text-align: center;
+        color: #64748b;
+        font-weight: 600;
+    }
+    @media (max-width: 992px) {
+        .leadership-grid { grid-template-columns: 1fr; }
+        .member-row { grid-template-columns: 40px 1fr 100px; }
+        .member-date { display: none; }
+    }
+</style>
+
+<div class="leadership-shell">
+    <div class="leadership-head">
+        <div>
+            <h1><i class="fas fa-trophy text-warning"></i> Leadership Honors</h1>
+            <p>Celebrate every hero contributing life-saving units to the BloodBridge bank.</p>
+        </div>
+        <span class="badge"><i class="fas fa-award"></i>{{ leaderboard_totals.members }} active champions</span>
+    </div>
+
+    {% if has_leaderboard %}
+        <div class="leaderboard-stat-grid">
+            <div class="stat-card">
+                <span>Total Members</span>
+                <h3>{{ leaderboard_totals.members }}</h3>
+            </div>
+            <div class="stat-card">
+                <span>Approved Donations</span>
+                <h3>{{ leaderboard_totals.donations }}</h3>
+            </div>
+            <div class="stat-card">
+                <span>Units Collected</span>
+                <h3>{{ leaderboard_totals.units|floatformat:0 }} ml</h3>
+            </div>
+        </div>
+
+        <div class="hero-grid">
+            {% for donor in leaderboard_top_three %}
+                <div class="hero-card rank-{{ donor.rank }}">
+                    <div class="hero-rank">#{{ donor.rank }}</div>
+                    <div class="hero-avatar">
+                        <img src="{{ donor.profile_pic }}"
+                             alt="{{ donor.name }}"
+                             data-random-src="{{ donor.random_profile_pic }}"
+                             data-placeholder-src="{{ donor.placeholder_avatar_url }}"
+                             onerror="if(!this.dataset.fallbackApplied){this.dataset.fallbackApplied='1'; this.src=this.dataset.randomSrc; return;} this.onerror=null; this.src=this.dataset.placeholderSrc;">
+                    </div>
+                    <div class="hero-info">
+                        <h4>{{ donor.name }}</h4>
+                        <p>{{ donor.bloodgroup }} • {{ donor.donations_count }} donation{{ donor.donations_count|pluralize }}</p>
+                        <small>{{ donor.total_units|floatformat:0 }} ml contributed</small>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="leadership-grid">
+            <div class="panel-card">
+                <h3>All Members Leaderboard</h3>
+                {% for donor in donor_leaderboard %}
+                    <div class="member-row {% if donor.rank <= 3 %}top-spot{% endif %}">
+                        <div class="member-rank">#{{ donor.rank }}</div>
+                        <div class="member-core">
+                            <div class="avatar">
+                                <img src="{{ donor.profile_pic }}"
+                                     alt="{{ donor.name }}"
+                                     data-random-src="{{ donor.random_profile_pic }}"
+                                     data-placeholder-src="{{ donor.placeholder_avatar_url }}"
+                                     onerror="if(!this.dataset.fallbackApplied){this.dataset.fallbackApplied='1'; this.src=this.dataset.randomSrc; return;} this.onerror=null; this.src=this.dataset.placeholderSrc;">
+                            </div>
+                            <div>
+                                <h4>{{ donor.name }}</h4>
+                                <small>@{{ donor.username }} · {{ donor.bloodgroup }}</small>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="member-units">{{ donor.total_units|floatformat:0 }} ml</div>
+                            <div class="member-donations">{{ donor.donations_count }} donation{{ donor.donations_count|pluralize }}</div>
+                        </div>
+                        <div class="member-date">
+                            {% if donor.last_donation %}
+                                Last: {{ donor.last_donation|date:"d M Y" }}
+                            {% else %}
+                                Awaiting first donation
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="panel-card">
+                <h3>Community Pulse</h3>
+                <div>
+                    <span class="badge"><i class="fas fa-history"></i> Recent approvals</span>
+                    {% if recent_activity %}
+                        {% for activity in recent_activity %}
+                            <div class="recent-item">
+                                <div class="hero-avatar" style="width:48px;height:48px;border-radius:14px;">
+                                    <img src="{{ activity.profile_pic }}"
+                                         alt="{{ activity.name }}"
+                                         data-random-src="{{ activity.random_profile_pic }}"
+                                         data-placeholder-src="{{ activity.placeholder_avatar_url }}"
+                                         onerror="if(!this.dataset.fallbackApplied){this.dataset.fallbackApplied='1'; this.src=this.dataset.randomSrc; return;} this.onerror=null; this.src=this.dataset.placeholderSrc;">
+                                </div>
+                                <div>
+                                    <strong>{{ activity.name }}</strong>
+                                    <div style="color:#6b7280;font-size:0.85rem;">
+                                        {{ activity.units }} ml • {{ activity.bloodgroup }} on {{ activity.date|date:"d M" }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mt-3">No approved donations yet.</p>
+                    {% endif %}
+                </div>
+                <hr>
+                <div>
+                    <span class="badge"><i class="fas fa-chart-bar"></i> Contribution mix</span>
+                    <div style="margin-top:12px;">
+                        {% if blood_group_totals %}
+                            {% for entry in blood_group_totals %}
+                                <div style="display:flex;justify-content:space-between;font-weight:600;color:#1f2937;">
+                                    <span>{{ entry.bloodgroup }}</span>
+                                    <span>{{ entry.units|floatformat:0 }} ml
+                                        {% if leaderboard_totals.units %}
+                                            <small style="color:#94a3b8;font-weight:600;">
+                                                ({% widthratio entry.units leaderboard_totals.units 100 %}%)
+                                            </small>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <hr style="border-top:1px dashed rgba(148,163,184,0.4);margin:8px 0 14px;">
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No blood group distribution available yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-user-friends"></i>
+            <p class="mb-0">No donations have been approved yet. Once donors start contributing, their achievements will appear here.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock content %}

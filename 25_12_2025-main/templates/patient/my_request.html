@@ -1,0 +1,370 @@
+{% extends 'patient/patientbase.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    .request-history-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 40px 0;
+        position: relative;
+        overflow-x: hidden;
+    }
+    
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .history-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+    }
+    
+    .history-icon {
+        font-size: 3.5rem;
+        color: #3498db;
+        margin-bottom: 20px;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .page-subtitle {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        margin-top: 20px;
+        font-weight: 500;
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        margin-top: 30px;
+        background: white;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .custom-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        font-family: 'Poppins', sans-serif;
+        margin-bottom: 0;
+    }
+    
+    .custom-table thead {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        position: relative;
+    }
+    
+    .custom-table thead th {
+        color: white;
+        font-weight: 700;
+        padding: 20px 15px;
+        text-align: center;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        border: none;
+        position: relative;
+    }
+    
+    .custom-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid rgba(236, 240, 241, 0.5);
+        position: relative;
+    }
+    
+    .custom-table tbody tr:hover {
+        background: linear-gradient(45deg, rgba(52, 152, 219, 0.05), rgba(41, 128, 185, 0.05));
+        transform: scale(1.01);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .custom-table tbody td {
+        padding: 18px 15px;
+        text-align: center;
+        color: #2c3e50;
+        font-weight: 500;
+        border: none;
+        vertical-align: middle;
+        position: relative;
+    }
+    
+    .status-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        color: white;
+    }
+    
+    .status-approved {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+    }
+    
+    .status-rejected {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+    }
+    
+    .status-label:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #7f8c8d;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 20px;
+        margin-top: 30px;
+        border: 2px dashed #bdc3c7;
+    }
+    
+    .empty-state i {
+        font-size: 5rem;
+        margin-bottom: 30px;
+        opacity: 0.6;
+        color: #3498db;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .empty-state h4 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #2c3e50;
+    }
+    
+    .empty-state p {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    
+    .cta-button {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+    
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Queue position badge */
+    .queue-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 5px 12px; border-radius: 12px; font-weight: 700;
+        font-size: 0.82rem; background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+    }
+    .queue-total { font-size: 0.7rem; opacity: 0.8; font-weight: 500; }
+
+    /* Availability badges */
+    .avail-badge {
+        padding: 4px 10px; border-radius: 10px; font-weight: 600;
+        font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .avail-ok { background: #d1fae5; color: #065f46; }
+    .avail-moderate { background: #fef3c7; color: #92400e; }
+    .avail-limited { background: #fed7aa; color: #9a3412; }
+    .avail-empty { background: #fee2e2; color: #991b1b; }
+
+    /* Confidence meter */
+    .confidence-bar-wrap {
+        width: 70px; height: 8px; background: #e2e8f0; border-radius: 4px;
+        overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px;
+    }
+    .confidence-bar {
+        height: 100%; border-radius: 4px; transition: width 0.4s ease;
+    }
+    .confidence-text {
+        font-weight: 700; font-size: 0.82rem; vertical-align: middle;
+    }
+
+    /* Confidence color classes */
+    .conf-high-bar  { background: #27ae60; }
+    .conf-mid-bar   { background: #f39c12; }
+    .conf-low-bar   { background: #e74c3c; }
+    .conf-high-text { color: #27ae60; }
+    .conf-mid-text  { color: #f39c12; }
+    .conf-low-text  { color: #e74c3c; }
+    .conf-done      { color: #27ae60; font-weight: 700; }
+    .conf-na        { color: #94a3b8; }
+</style>
+
+<div class="request-history-dashboard">
+    <div class="container">
+        <div class="history-container">
+            <div class="page-header">
+                <div class="history-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <h1 class="page-title">My Blood Requests</h1>
+                <p class="page-subtitle">Track your blood request history and status</p>
+            </div>
+
+            {% if requests %}
+                <div class="table-wrapper">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th scope="col"><i class="fas fa-hashtag"></i> ID</th>
+                                <th scope="col"><i class="fas fa-user"></i> Patient</th>
+                                <th scope="col"><i class="fas fa-tint"></i> Blood Group</th>
+                                <th scope="col"><i class="fas fa-flask"></i> Unit (ml)</th>
+                                <th scope="col"><i class="fas fa-sort-numeric-up"></i> Queue</th>
+                                <th scope="col"><i class="fas fa-cubes"></i> Availability</th>
+                                <th scope="col"><i class="fas fa-signal"></i> Confidence</th>
+                                <th scope="col"><i class="fas fa-clock"></i> Date</th>
+                                <th scope="col"><i class="fas fa-info-circle"></i> Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in requests %}
+                            <tr>
+                                <td style="font-weight: 700; color: #3498db; font-family: monospace;">#{{ request.id }}</td>
+                                <td style="font-weight: 600; color: #2c3e50;">{{ request.patient_name }}</td>
+                                <td><span style="background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 700;">{{ request.bloodgroup }}</span></td>
+                                <td style="color: #27ae60; font-weight: 700; font-size: 1.1rem;">{{ request.unit }} ml</td>
+                                <td style="text-align:center;">
+                                    {% if request.queue_position %}
+                                        <span class="queue-badge">
+                                            <i class="fas fa-list-ol"></i> #{{ request.queue_position }}
+                                        </span>
+                                        <div class="queue-total">of {{ request.queue_total }} pending</div>
+                                    {% elif request.status == 'Approved' %}
+                                        <span style="color: #27ae60; font-weight: 700; font-size: 0.85rem;"><i class="fas fa-check"></i> Completed</span>
+                                    {% else %}
+                                        <span style="color: #94a3b8; font-size: 0.85rem;">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align:center;">
+                                    <span class="avail-badge {{ request.avail_css }}">
+                                        {% if request.avail_css == 'avail-ok' %}<i class="fas fa-check-circle"></i>
+                                        {% elif request.avail_css == 'avail-moderate' %}<i class="fas fa-exclamation-circle"></i>
+                                        {% elif request.avail_css == 'avail-limited' %}<i class="fas fa-exclamation-triangle"></i>
+                                        {% else %}<i class="fas fa-times-circle"></i>{% endif %}
+                                        {{ request.avail_label }}
+                                    </span>
+                                </td>
+                                <td style="text-align:center;">
+                                    {% if request.confidence > 0 %}
+                                        <div>
+                                            <span class="confidence-bar-wrap">
+                                                <span class="confidence-bar {{ request.confidence_css }}-bar" data-width="{{ request.confidence }}"></span>
+                                            </span>
+                                            <span class="confidence-text {{ request.confidence_css }}-text">
+                                                {{ request.confidence }}%
+                                            </span>
+                                        </div>
+                                    {% elif request.status == 'Approved' %}
+                                        <span class="conf-done"><i class="fas fa-check-double"></i> 100%</span>
+                                    {% else %}
+                                        <span class="conf-na">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="color: #5a6c7d; font-weight: 500;">{{ request.date|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if request.status == 'Approved' %}
+                                        <span class="status-label status-approved">
+                                            <i class="fas fa-check-circle"></i> Approved
+                                        </span>
+                                    {% elif request.status == 'Rejected' %}
+                                        <span class="status-label status-rejected">
+                                            <i class="fas fa-times-circle"></i> Rejected
+                                        </span>
+                                    {% else %}
+                                        <span class="status-label status-pending">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h4>No Blood Requests Yet</h4>
+                    <p>You haven't made any blood requests yet. Make your first request to get started.</p>
+                    <a href="{% url 'make-request' %}" class="cta-button">
+                        <i class="fas fa-plus-circle"></i>
+                        Make First Request
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.confidence-bar[data-width]').forEach(function(el) {
+    el.style.width = el.getAttribute('data-width') + '%';
+});
+</script>
+
+{% endblock content %}

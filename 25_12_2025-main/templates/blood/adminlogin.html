@@ -1,0 +1,376 @@
+{%load static%}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - BloodBridge</title>
+      
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Main CSS-->
+    <link href="{% static "css/main.css" %}"rel="stylesheet" media="all">
+    
+    <style>
+        /* Enhanced Admin Login Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 40px 30px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+
+        .admin-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .field-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.95rem;
+        }
+
+        .form-helper {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 15px;
+            padding: 0 18px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            background: white;
+        }
+
+        .input-icon {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(102, 126, 234, 0.08);
+        }
+
+        .form-control {
+            border: none;
+            background: transparent;
+            padding: 15px 0;
+            font-size: 1rem;
+            width: 100%;
+            box-shadow: none;
+        }
+
+        .form-control:focus {
+            border: none;
+            box-shadow: none;
+            background: transparent;
+            outline: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .security-notice {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .security-notice i {
+            margin-right: 8px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+                max-width: none;
+            }
+
+            .login-header {
+                padding: 30px 20px 20px;
+            }
+
+            .login-header h2 {
+                font-size: 1.6rem;
+            }
+
+            .login-body {
+                padding: 30px 20px;
+            }
+
+            .admin-icon {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Animation */
+        .login-container {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading state */
+        .login-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .login-btn.loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error state */
+        .form-control.error {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+        }
+    </style>
+  </head>
+  <body>
+    {% include "blood/navbar.html" %}
+
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="admin-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h2>Admin Login</h2>
+                <p>BloodBridge Management System</p>
+            </div>
+            
+            <div class="login-body">
+                <form method="POST" id="loginForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <div class="field-meta">
+                            <span class="form-label">Username</span>
+                            <small class="form-helper">Use your admin credentials</small>
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="field-meta">
+                            <span class="form-label">Password</span>
+                            <small class="form-helper">Minimum 8 characters</small>
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="login-btn" id="loginButton">
+                        <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                    </button>
+                </form>
+
+                <div style="text-align: center; margin-top: 12px;">
+                    <a href="{% url 'forgot-password' role='admin' %}" style="color: #667eea; font-size: 0.9rem; text-decoration: none; font-weight: 500;">
+                        <i class="fas fa-key"></i> Forgot Password?
+                    </a>
+                </div>
+
+                <div class="security-notice">
+                    <i class="fas fa-shield-alt"></i>
+                    This is a secure BloodBridge admin area. Unauthorized access is prohibited.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "blood/footer.html" %}
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script>
+        // Enhanced form interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const loginButton = document.getElementById('loginButton');
+            const inputs = document.querySelectorAll('.form-control');
+
+            // Add focus/blur effects
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.classList.remove('error');
+                });
+
+                input.addEventListener('blur', function() {
+                    if (this.value === '') {
+                        this.classList.add('error');
+                    }
+                });
+            });
+
+            // Form submission with loading state
+            form.addEventListener('submit', function(e) {
+                loginButton.classList.add('loading');
+                loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            });
+
+            // Auto-focus on username field
+            const usernameField = document.querySelector('input[name="username"]');
+            if (usernameField) {
+                usernameField.focus();
+            }
+        });
+    </script>
+  </body>
+</html>

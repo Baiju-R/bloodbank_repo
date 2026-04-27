@@ -1,0 +1,252 @@
+{% extends 'donor/donorbase.html' %}
+{% block content %}
+{% load static %}
+{% load widget_tweaks %}
+
+<style>
+    .reports-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    .dashboard-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .status-banner {
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    .status-banner.valid {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+    }
+    .status-banner.expiring {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+    }
+    .status-banner.expired {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+    .status-banner.none {
+        background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    }
+    .status-banner h3 {
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    .status-banner p { margin-bottom: 0; opacity: 0.95; }
+
+    .upload-card, .history-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+    .form-control-file {
+        padding: 15px;
+        border: 2px dashed #bdc3c7;
+        border-radius: 15px;
+        background: #f8f9fa;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    .form-control-file:hover {
+        border-color: #27ae60;
+        background: #f0fff4;
+    }
+    .btn-upload {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        padding: 14px 40px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    .btn-upload:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(39,174,96,0.3);
+        color: white;
+    }
+    .report-item {
+        border: 1px solid #e9ecef;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    .report-item:hover {
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+    .report-item .badge {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 8px;
+    }
+    .report-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+    .file-info {
+        font-size: 0.85rem;
+        color: #95a5a6;
+        margin-top: 5px;
+    }
+</style>
+
+<div class="reports-dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-file-medical"></i> Medical Reports</h1>
+            <p>Upload and manage your medical health reports (valid for 3 months)</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="border-radius:15px;">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Status Banner -->
+        {% if is_report_valid %}
+            {% if days_remaining <= 14 %}
+                <div class="status-banner expiring">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Report Expiring Soon</h3>
+                    <p>Your medical report expires on {{ expiry_date|date:"d M Y" }} ({{ days_remaining }} days remaining). Please upload a new report.</p>
+                </div>
+            {% else %}
+                <div class="status-banner valid">
+                    <h3><i class="fas fa-check-circle"></i> Report Valid</h3>
+                    <p>Your medical report is valid until {{ expiry_date|date:"d M Y" }} ({{ days_remaining }} days remaining).</p>
+                </div>
+            {% endif %}
+        {% elif reports %}
+            <div class="status-banner expired">
+                <h3><i class="fas fa-times-circle"></i> Report Expired</h3>
+                <p>Your last medical report has expired. Please upload a new one to continue donating.</p>
+            </div>
+        {% else %}
+            <div class="status-banner none">
+                <h3><i class="fas fa-info-circle"></i> No Reports</h3>
+                <p>You haven't uploaded any medical reports yet. Upload one below.</p>
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- Upload Form -->
+            <div class="col-lg-5 mb-4">
+                <div class="upload-card">
+                    <h3 class="card-title">
+                        <i class="fas fa-upload" style="color: #27ae60;"></i>
+                        Upload New Report
+                    </h3>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label><i class="fas fa-file"></i> Medical Report Document <span class="text-danger">*</span></label>
+                            {{ form.document }}
+                            <small class="text-muted d-block mt-2">
+                                Accepted: PDF, JPG, PNG, DOC, DOCX, BMP, TIFF (max 10MB)
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-sticky-note"></i> Notes (optional)</label>
+                            {% render_field form.notes class="form-control" rows="3" placeholder="Any additional notes about this report..." style="border-radius:12px;" %}
+                        </div>
+                        <button type="submit" class="btn btn-upload">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Report History -->
+            <div class="col-lg-7">
+                <div class="history-card">
+                    <h3 class="card-title">
+                        <i class="fas fa-history" style="color: #3498db;"></i>
+                        Report History
+                    </h3>
+
+                    {% if reports %}
+                        {% for report in reports %}
+                        <div class="report-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h5 class="mb-1" style="font-weight:600; color:#2c3e50;">
+                                        <i class="fas fa-file-medical" style="color:#3498db;"></i>
+                                        {{ report.document_name|default:"Medical Report" }}
+                                    </h5>
+                                    {% if report.notes %}
+                                        <p class="text-muted mb-1" style="font-size:0.9rem;">{{ report.notes }}</p>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {% if report.is_expired %}
+                                        <span class="badge badge-danger">Expired</span>
+                                    {% elif report.is_verified %}
+                                        <span class="badge badge-success">Verified</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">Pending Verification</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="report-meta">
+                                <span><i class="fas fa-calendar"></i> Uploaded: {{ report.uploaded_at|date:"d M Y, h:i A" }}</span>
+                                <span><i class="fas fa-calendar-times"></i> Expires: {{ report.expiry_date|date:"d M Y" }}</span>
+                                {% if report.is_verified %}
+                                    <span><i class="fas fa-user-check"></i> Verified by: {{ report.verified_by.get_full_name|default:report.verified_by.username }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="file-info mt-2">
+                                <a href="{{ report.document.url }}" target="_blank" class="text-primary">
+                                    <i class="fas fa-download"></i> Download Report
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-folder-open" style="font-size:3rem; color:#bdc3c7;"></i>
+                            <p class="text-muted mt-3">No medical reports uploaded yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

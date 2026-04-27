@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	{% load static %}
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Patient Portal - BloodBridge</title>
+	<meta name="theme-color" content="#e74c3c">
+	<link rel="manifest" href="/static/manifest.webmanifest">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="{% static 'css/responsive-enhancements.css' %}">
+
+	<style>
+		*{font-family:'Poppins',sans-serif}
+		body{background:linear-gradient(135deg,#eef3fb,#cfe6fb);min-height:100vh;margin:0}
+		.navbar{background:linear-gradient(135deg,#3498db,#2980b9) !important;box-shadow:0 4px 20px rgba(0,0,0,0.12);padding:14px 20px;position:fixed;top:0;left:0;right:0;z-index:1000}
+		.navbar-brand{color:#fff;font-weight:700}
+		.sidebar-toggle{background:transparent;border:0;color:#fff;font-size:20px;padding:6px}
+		.patient-sidebar{position:fixed;top:70px;left:-280px;width:280px;height:calc(100vh - 70px);background:linear-gradient(180deg,#2c3e50 0%,#34495e 100%);padding:24px 0;z-index:999;transition:all .35s}
+		.patient-sidebar.active{left:0}
+		.sidebar-header{color:#ecf0f1;text-align:center;margin-bottom:20px}
+		.sidebar-menu{list-style:none;padding:0;margin:0}
+		.sidebar-menu a{display:block;color:#ecf0f1;padding:12px 22px;margin:6px 12px;border-radius:10px;text-decoration:none;transition:all .2s}
+		.sidebar-menu a:hover,.sidebar-menu a.active{background:linear-gradient(135deg,#3498db,#2980b9);transform:translateX(6px)}
+		.main-content{margin-top:90px;transition:all .35s}
+		@media(min-width:992px){.patient-sidebar{left:0}.main-content{margin-left:280px;width:calc(100% - 280px)}.sidebar-toggle{display:none}}
+		.sidebar-backdrop{display:none;position:fixed;top:70px;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:998;opacity:0;transition:opacity .3s}
+		.sidebar-backdrop.active{display:block;opacity:1}
+	</style>
+</head>
+<body>
+	<!-- Navbar -->
+	<nav class="navbar navbar-expand-lg navbar-dark">
+		<div class="container-fluid">
+			<button class="sidebar-toggle d-lg-none" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+			<a class="navbar-brand" href="/"><i class="fas fa-heartbeat mr-2"></i>BloodBridge Patient</a>
+			<div class="ml-auto d-flex align-items-center">
+				<a class="nav-link text-white" href="{% url 'patient-dashboard' %}"><i class="fas fa-tachometer-alt"></i> <span class="d-none d-sm-inline">Dashboard</span></a>
+				<form method="post" action="/logout/" style="display:inline">
+					{% csrf_token %}
+					<button type="submit" class="nav-link text-white btn btn-link" style="cursor:pointer"><i class="fas fa-sign-out-alt"></i> <span class="d-none d-sm-inline">Logout</span></button>
+				</form>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Sidebar Backdrop -->
+	<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+	<!-- Sidebar -->
+	<aside class="patient-sidebar" id="patientSidebar">
+		<div class="sidebar-header">
+			<h5><i class="fas fa-user-injured"></i> Patient Menu</h5>
+		</div>
+		<ul class="sidebar-menu">
+			<li><a href="{% url 'patient-dashboard' %}" class="{% if request.path == '/patient/dashboard/' %}active{% endif %}"><i class="fas fa-home"></i> Dashboard</a></li>
+			<li><a href="{% url 'make-request' %}" class="{% if request.path == '/patient/make-request/' %}active{% endif %}"><i class="fas fa-plus-circle"></i> Request Blood</a></li>
+			<li><a href="{% url 'my-request' %}" class="{% if request.path == '/patient/my-request/' %}active{% endif %}"><i class="fas fa-list-alt"></i> My Requests</a></li>
+			<li><a href="{% url 'patient-nearby-donors' %}" class="{% if request.path == '/patient/nearby-donors/' %}active{% endif %}"><i class="fas fa-map-marked-alt"></i> Nearby Donors</a></li>
+			<li><a href="{% url 'patient-feedback' %}" class="{% if request.path == '/patient/feedback/' %}active{% endif %}"><i class="fas fa-comment-dots"></i> Feedback</a></li>
+		</ul>
+	</aside>
+	<!-- Main Content -->
+	<main class="main-content" id="mainContent">
+		{% block content %}{% endblock content %}
+	</main>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+	<script>
+		function toggleSidebar(){
+			const s=document.getElementById('patientSidebar'), b=document.getElementById('sidebarBackdrop');
+			s.classList.toggle('active'); b.classList.toggle('active');
+		}
+		document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
+		document.addEventListener('click', function(e){
+			const s=document.getElementById('patientSidebar'), t=document.getElementById('sidebarToggle');
+			if(window.innerWidth<992 && s.classList.contains('active') && !s.contains(e.target) && !t?.contains(e.target)){
+				s.classList.remove('active'); document.getElementById('sidebarBackdrop').classList.remove('active');
+			}
+		});
+
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', function() {
+				navigator.serviceWorker.register('/service-worker.js').catch(function() {});
+			});
+		}
+	</script>
+
+	{% include 'blood/faq_button.html' %}
+</body>
+</html>

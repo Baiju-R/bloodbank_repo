@@ -1,0 +1,60 @@
+{% extends 'donor/donorbase.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-3"><i class="fas fa-calendar-plus"></i> Book Donation Appointment</h3>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card mb-4">
+    <div class="card-header"><strong>Available Slots</strong></div>
+    <div class="card-body">
+      <form method="post" class="form-row">
+        {% csrf_token %}
+        <div class="form-group col-md-6">
+          <label>Select Slot</label>
+          <select class="form-control" name="slot_id" required>
+            {% for slot in slots %}
+              <option value="{{ slot.id }}">#{{ slot.id }} • {{ slot.start_at|date:"d M Y H:i" }} to {{ slot.end_at|date:"H:i" }} ({{ slot.remaining }} left)</option>
+            {% empty %}
+              <option value="">No active slots</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group col-md-6">
+          <label>Notes</label>
+          <input class="form-control" name="notes" maxlength="255" placeholder="Any preference or note">
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">Request Appointment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><strong>My Appointment Requests</strong></div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>ID</th><th>Slot</th><th>Status</th><th>Notes</th><th>Requested At</th></tr></thead>
+        <tbody>
+          {% for item in appointments %}
+            <tr>
+              <td>#{{ item.id }}</td>
+              <td>{% if item.slot %}{{ item.slot.start_at|date:"d M Y H:i" }}{% elif item.requested_for %}{{ item.requested_for|date:"d M Y H:i" }}{% else %}-{% endif %}</td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.notes|default:'-' }}</td>
+              <td>{{ item.requested_at|date:"d M Y H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-center text-muted">No appointment requests yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock content %}

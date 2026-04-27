@@ -1,0 +1,570 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodBridge Copilot Assistant</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Poppins', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .assistant-hero {
+            background: linear-gradient(120deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.95)), url('{% static "image/homepage.jpg" %}') center/cover;
+            border-radius: 24px;
+            padding: 50px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.35);
+        }
+        .assistant-hero::after {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .assistant-hero h1 { font-weight: 700; font-size: 2.6rem; }
+        .assistant-hero p { font-size: 1.1rem; max-width: 640px; }
+        .assistant-hero .cta-btn {
+            background: white;
+            color: #764ba2;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(255,255,255,0.3);
+        }
+        .stat-card {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .stat-card .icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: white;
+        }
+        .chat-layout {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: minmax(320px, 420px) 1fr;
+            gap: 30px;
+        }
+        .chat-panel {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12);
+            display: flex;
+            flex-direction: column;
+            min-height: 520px;
+        }
+        .chat-log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            border-radius: 18px;
+            background: #f8f9ff;
+            margin-bottom: 18px;
+        }
+        .chat-bubble {
+            padding: 14px 18px;
+            border-radius: 18px;
+            margin-bottom: 12px;
+            max-width: 90%;
+            line-height: 1.5;
+        }
+        .chat-bubble.user { background: #e1e9ff; margin-left: auto; border-bottom-right-radius: 4px; }
+        .chat-bubble.assistant { background: white; border: 1px solid #e0e7ff; border-bottom-left-radius: 4px; }
+        .prompt-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .prompt-chips button {
+            border: none;
+            border-radius: 50px;
+            padding: 10px 18px;
+            background: rgba(102, 126, 234, 0.15);
+            color: #4c1d95;
+            font-weight: 500;
+        }
+        .faq-panel {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+        }
+        .faq-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .faq-toolbar input {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 18px;
+            border: 1px solid #e0e7ff;
+        }
+        .faq-section {
+            margin-bottom: 28px;
+            border-radius: 16px;
+            border: 1px solid #edf0ff;
+            overflow: hidden;
+        }
+        .faq-section-header {
+            background: linear-gradient(120deg, #f8f9ff, #eef2ff);
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .faq-section-body { padding: 0 22px 18px; }
+        .question-card {
+            padding: 18px;
+            border-radius: 14px;
+            border: 1px solid #f1f5f9;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+        }
+        .question-card:hover { box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12); border-color: rgba(102, 126, 234, 0.4); }
+        .question-card h5 { font-size: 1rem; font-weight: 600; }
+        .question-card p { margin-bottom: 10px; color: #475569; }
+        .question-meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .question-meta .audience {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6366f1;
+        }
+        .question-meta button {
+            border: none;
+            border-radius: 999px;
+            padding: 8px 16px;
+            background: linear-gradient(120deg, #6366f1, #8b5cf6);
+            color: white;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .timeline {
+            margin-top: 40px;
+            border-radius: 18px;
+            padding: 24px;
+            background: white;
+            box-shadow: 0 15px 30px rgba(15,23,42,0.08);
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 48px;
+            margin-bottom: 22px;
+        }
+        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 18px;
+            top: 0;
+            bottom: -22px;
+            width: 2px;
+            background: #e0e7ff;
+        }
+        .timeline-item:last-child::before { display: none; }
+        .timeline-dot {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #6366f1;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+        .status-badge {
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-badge.Pending { background: rgba(234,179,8,0.15); color: #a16207; }
+        .status-badge.Approved { background: rgba(16,185,129,0.15); color: #047857; }
+        .status-badge.Rejected { background: rgba(248,113,113,0.15); color: #b91c1c; }
+        @media (max-width: 991px) {
+            .chat-layout { grid-template-columns: 1fr; }
+            .assistant-hero { padding: 32px; }
+        }
+    </style>
+</head>
+<body>
+    {% include 'blood/navbar.html' %}
+    <div class="container py-5" style="margin-top: 90px;">
+        <div class="assistant-hero mb-4">
+            <span class="badge badge-pill badge-light text-uppercase mb-3" style="color:#764ba2">BloodBridge Copilot</span>
+            <h1>Your always-on FAQ chatbot</h1>
+            <p class="mb-4">Need help understanding workflows, onboarding new teammates, or debugging approvals? Our conversational assistant packages the entire README, dashboards, and domain rules into one guided space.</p>
+            <button class="cta-btn" onclick="document.getElementById('promptInput').focus()">
+                <i class="fas fa-comments"></i>
+                Ask a question
+            </button>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card">
+                    <div class="icon" style="background:#f87171"><i class="fas fa-user-plus"></i></div>
+                    <div>
+                        <p class="text-muted mb-1">Donors</p>
+                        <h3 class="mb-0">{{ project_stats.donors }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card">
+                    <div class="icon" style="background:#60a5fa"><i class="fas fa-user-injured"></i></div>
+                    <div>
+                        <p class="text-muted mb-1">Patients</p>
+                        <h3 class="mb-0">{{ project_stats.patients }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card">
+                    <div class="icon" style="background:#34d399"><i class="fas fa-hand-holding-medical"></i></div>
+                    <div>
+                        <p class="text-muted mb-1">Donations</p>
+                        <h3 class="mb-0">{{ project_stats.donations }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card">
+                    <div class="icon" style="background:#f59e0b"><i class="fas fa-flask"></i></div>
+                    <div>
+                        <p class="text-muted mb-1">Units in stock</p>
+                        <h3 class="mb-0">{{ project_stats.stock_units }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-layout">
+            <section class="chat-panel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h4 class="mb-0">Chat stream</h4>
+                        <small class="text-muted">Assistant cites trusted FAQ entries</small>
+                    </div>
+                    <button class="btn btn-light btn-sm" id="clearChat"><i class="fas fa-undo"></i> Reset</button>
+                </div>
+                <div class="chat-log" id="chatLog">
+                    <div class="chat-bubble assistant">
+                        <strong>BloodBridge Copilot:</strong><br>
+                        Ask me anything about onboarding, donor/patient workflows, admin approvals, or troubleshooting.
+                    </div>
+                </div>
+                <div class="prompt-chips mb-3">
+                    {% for prompt in chatbot_prompts %}
+                        <button type="button" class="prompt-chip" data-prompt="{{ prompt }}">{{ prompt }}</button>
+                    {% endfor %}
+                </div>
+                <div class="input-group">
+                    <input type="text" id="promptInput" class="form-control" placeholder="Type a question or pick a prompt" />
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" id="askButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="faq-panel">
+                <div class="faq-toolbar">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search"></i></span>
+                        </div>
+                        <input type="text" id="faqSearch" class="form-control border-left-0" placeholder="Search FAQs by keyword, role, or action">
+                    </div>
+                    <span class="badge badge-pill badge-secondary">
+                        {{ faq_sections|length }} categories
+                    </span>
+                </div>
+                {% for section in faq_sections %}
+                    <div class="faq-section" data-category="{{ section.category }}">
+                        <div class="faq-section-header" data-toggle="collapse" data-target="#section-{{ forloop.counter }}" aria-expanded="true">
+                            <div>
+                                <h4 class="mb-0"><i class="fas fa-{{ section.icon }} mr-2"></i>{{ section.category }}</h4>
+                                <small class="text-muted">Designed for {{ section.audience }}</small>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-section-body collapse show" id="section-{{ forloop.counter }}">
+                            {% for item in section.items %}
+                                <article class="question-card" data-question="{{ item.question|escape }}" data-answer="{{ item.answer|escape }}" data-audience="{{ item.audience }}" data-keywords="{{ item.keywords|join:' '|default:'' }}">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="mb-0">{{ item.question }}</h5>
+                                        <span class="badge badge-light">{{ item.audience }}</span>
+                                    </div>
+                                    <p>{{ item.answer }}</p>
+                                    {% if item.next_steps %}
+                                        <div class="mb-2">
+                                            <small class="text-muted">Next steps</small>
+                                            <ul class="mb-0">
+                                                {% for step in item.next_steps %}
+                                                    <li>{{ step }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                    {% if item.links %}
+                                        <div class="mb-2">
+                                            {% for link in item.links %}
+                                                <a href="{{ link.url }}" class="btn btn-sm btn-outline-primary mr-2" target="_blank">{{ link.label }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="question-meta">
+                                        <span class="audience"><i class="fas fa-users"></i> {{ item.audience }}</span>
+                                        <button type="button" class="use-answer" data-question="{{ item.question|escape }}" data-answer="{{ item.answer|escape }}">
+                                            <i class="fas fa-comment-dots"></i>
+                                            Ask the assistant
+                                        </button>
+                                    </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </section>
+        </div>
+
+        <section class="timeline mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Latest blood requests</h4>
+                <small class="text-muted">Live context from the database</small>
+            </div>
+            {% if request_timeline %}
+                {% for entry in request_timeline %}
+                    <div class="timeline-item">
+                        <span class="timeline-dot"></span>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ entry.actor }}</strong> ({{ entry.role }}) requested {{ entry.unit }}ml of {{ entry.bloodgroup }}
+                                <div class="text-muted small">Request #{{ entry.id }} · {{ entry.date }}</div>
+                            </div>
+                            <span class="status-badge {{ entry.status }}">{{ entry.status }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted mb-0">No recent requests available.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <script>
+    const faqData = JSON.parse('{{ faq_json|escapejs }}');
+    const promptOptions = JSON.parse('{{ prompts_json|escapejs }}');
+        const chatLog = document.getElementById('chatLog');
+        const promptInput = document.getElementById('promptInput');
+
+        const normalizeText = (text = '') => text
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        const tokenize = (text = '') => normalizeText(text)
+            .split(' ')
+            .filter(token => token.length > 2);
+
+        const faqIndex = [];
+        faqData.forEach(section => {
+            section.items.forEach(item => {
+                const keywordList = (item.keywords || []).map(keyword => normalizeText(keyword));
+                const combinedFields = [
+                    item.question,
+                    item.answer,
+                    (item.next_steps || []).join(' '),
+                    keywordList.join(' '),
+                    (item.links || []).map(link => `${link.label} ${link.url}`).join(' ')
+                ].join(' ');
+
+                faqIndex.push({
+                    item,
+                    keywords: keywordList,
+                    tokens: new Set(tokenize(combinedFields)),
+                    normalizedQuestion: normalizeText(item.question),
+                    normalizedAnswer: normalizeText(item.answer)
+                });
+            });
+        });
+
+        function appendMessage(role, text) {
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${role}`;
+            bubble.innerHTML = `<strong>${role === 'user' ? 'You' : 'BloodBridge Copilot'}:</strong><br>${text}`;
+            chatLog.appendChild(bubble);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function scoreMatch(entry, queryTokens, normalizedQuery) {
+            if (!normalizedQuery) {
+                return 0;
+            }
+
+            if (entry.normalizedQuestion === normalizedQuery) {
+                return 100;
+            }
+
+            let score = 0;
+
+            if (entry.keywords.includes(normalizedQuery)) {
+                score += 35;
+            }
+            if (entry.normalizedQuestion.includes(normalizedQuery)) {
+                score += 20;
+            }
+            if (entry.normalizedAnswer.includes(normalizedQuery)) {
+                score += 10;
+            }
+
+            queryTokens.forEach(token => {
+                if (entry.tokens.has(token)) {
+                    score += 4;
+                }
+                if (entry.keywords.includes(token)) {
+                    score += 6;
+                }
+            });
+
+            const keywordPhraseHits = entry.keywords.filter(kw => normalizedQuery.includes(kw)).length;
+            score += keywordPhraseHits * 5;
+
+            return score;
+        }
+
+        function findAnswer(question) {
+            const normalizedQuery = normalizeText(question);
+            if (!normalizedQuery) return null;
+            const queryTokens = tokenize(question);
+
+            let bestItem = null;
+            let bestScore = 0;
+
+            faqIndex.forEach(entry => {
+                const score = scoreMatch(entry, queryTokens, normalizedQuery);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestItem = entry.item;
+                }
+            });
+
+            if (!bestItem) {
+                return null;
+            }
+
+            return { item: bestItem, score: bestScore };
+        }
+
+        function formatResponse(match) {
+            const { item, score } = match;
+            let response = `<strong>${item.question}</strong><br>${item.answer}`;
+            if (item.next_steps && item.next_steps.length) {
+                response += '<br><br><strong>Suggested next steps:</strong><ul>' + item.next_steps.map(step => `<li>${step}</li>`).join('') + '</ul>';
+            }
+            if (item.links && item.links.length) {
+                response += '<br><strong>Helpful links:</strong><br>' + item.links.map(link => `<a href="${link.url}" target="_blank">${link.label}</a>`).join(' · ');
+            }
+            const confidence = Math.min(99, Math.max(50, Math.round(score)));
+            response += `<br><small class="text-muted">Answer matched from curated FAQs · confidence ${confidence}%</small>`;
+            return response;
+        }
+
+        function handleAsk(text) {
+            if (!text.trim()) return;
+            appendMessage('user', text);
+            const match = findAnswer(text);
+            if (match) {
+                appendMessage('assistant', formatResponse(match));
+            } else {
+                appendMessage('assistant', "I couldn't find an exact match, but you can explore the FAQ cards on the right or refine your question.");
+            }
+        }
+
+        document.querySelectorAll('.prompt-chip').forEach((chip) => {
+            chip.addEventListener('click', () => {
+                const prompt = chip.dataset.prompt;
+                promptInput.value = prompt;
+                handleAsk(prompt);
+            });
+        });
+
+        document.getElementById('askButton').addEventListener('click', () => {
+            handleAsk(promptInput.value);
+            promptInput.value = '';
+        });
+
+        promptInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleAsk(promptInput.value);
+                promptInput.value = '';
+            }
+        });
+
+        document.querySelectorAll('.use-answer').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                handleAsk(btn.dataset.question);
+            });
+        });
+
+        document.getElementById('clearChat').addEventListener('click', () => {
+            chatLog.innerHTML = '<div class="chat-bubble assistant"><strong>BloodBridge Copilot:</strong><br>Ask me anything about onboarding, donor/patient workflows, admin approvals, or troubleshooting.</div>';
+        });
+
+        const faqSearch = document.getElementById('faqSearch');
+        faqSearch.addEventListener('input', () => {
+            const term = faqSearch.value.toLowerCase();
+            document.querySelectorAll('.question-card').forEach(card => {
+                const matches = card.dataset.question.toLowerCase().includes(term) ||
+                                card.dataset.answer.toLowerCase().includes(term) ||
+                                card.dataset.audience.toLowerCase().includes(term) ||
+                                (card.dataset.keywords && card.dataset.keywords.toLowerCase().includes(term));
+                card.style.display = matches ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

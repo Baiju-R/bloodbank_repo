@@ -1,0 +1,197 @@
+{% extends 'blood/adminbase.html' %}
+{% block content %}
+{% load widget_tweaks %}
+{%load static%}
+
+<style>
+    .req-page { padding: 20px 0; }
+    .req-page .page-title { font-size: 1.5rem; font-weight: 700; color: #2c3e50; margin-bottom: 6px; }
+    .req-page .page-title i { color: #667eea; margin-right: 8px; }
+    .req-page .page-subtitle { color: #7f8c8d; font-size: 0.92rem; margin-bottom: 18px; }
+
+    .req-card {
+        background: #fff; border-radius: 12px; padding: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 14px;
+    }
+
+    /* Compact table */
+    .req-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; table-layout: fixed; }
+    .req-table th {
+        background: #f8f9fa; color: #6c757d; font-weight: 600; font-size: 0.72rem;
+        text-transform: uppercase; letter-spacing: 0.4px;
+        padding: 6px 6px; border-bottom: 2px solid #dee2e6; text-align: left;
+        white-space: nowrap; overflow: hidden;
+    }
+    .req-table td {
+        padding: 7px 6px; border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle; overflow: hidden; text-overflow: ellipsis;
+    }
+    .req-table tr:hover td { background: #f8f9fe; }
+
+    /* Column widths — total 100% */
+    .req-table .col-id { width: 4%; }
+    .req-table .col-name { width: 12%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .req-table .col-age { width: 4%; text-align: center; }
+    .req-table .col-reason { width: 13%; }
+    .req-table .col-bg { width: 5%; text-align: center; }
+    .req-table .col-unit { width: 5%; text-align: center; }
+    .req-table .col-priority { width: 9%; text-align: center; }
+    .req-table .col-stock { width: 8%; text-align: center; }
+    .req-table .col-date { width: 8%; }
+    .req-table .col-by { width: 10%; }
+    .req-table .col-status { width: 6%; text-align: center; }
+    .req-table .col-action { width: 16%; text-align: center; }
+
+    /* Inline helpers */
+    .req-table .name-cell { font-weight: 600; color: #2c3e50; }
+    .req-table .id-cell { font-weight: 700; color: #667eea; font-family: monospace; font-size: 0.8rem; }
+    .req-table .muted { color: #95a5a6; font-size: 0.8rem; }
+    .reason-cell {
+        color: #6c3483; font-size: 0.8rem; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis; max-width: 0;
+    }
+    .bg-badge {
+        background: #fee2e2; color: #dc2626; padding: 1px 6px; border-radius: 6px;
+        font-weight: 700; font-size: 0.78rem;
+    }
+    .unit-cell { font-weight: 700; color: #27ae60; }
+
+    /* Tiny priority badge */
+    .pri-badge {
+        padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 700;
+        color: #fff; white-space: nowrap; display: inline-block;
+    }
+    .pri-critical { background: #dc2626; animation: pulse-c 1.5s ease-in-out infinite; }
+    @keyframes pulse-c { 0%,100%{box-shadow:0 0 4px rgba(220,38,38,.3)} 50%{box-shadow:0 0 10px rgba(220,38,38,.6)} }
+    .pri-high { background: #ea580c; }
+    .pri-medium { background: #d97706; }
+    .pri-low { background: #059669; }
+    .days-sm { font-size: 0.68rem; color: #94a3b8; display: block; }
+
+    /* Tiny stock indicator */
+    .stk-badge { padding: 1px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+    .stock-ok { background: #d1fae5; color: #065f46; }
+    .stock-limited { background: #fef3c7; color: #92400e; }
+    .stock-low { background: #fed7aa; color: #9a3412; }
+    .stock-empty { background: #fee2e2; color: #991b1b; }
+    .stk-num { font-size: 0.7rem; color: #64748b; display: block; font-weight: 600; }
+
+    /* Status */
+    .sts-badge {
+        padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 700;
+        color: #fff; display: inline-block;
+    }
+    .sts-pending { background: #f59e0b; }
+    .sts-approved { background: #10b981; }
+    .sts-rejected { background: #ef4444; }
+
+    /* Requester badge */
+    .by-badge { font-size: 0.72rem; padding: 1px 5px; border-radius: 6px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 100%; }
+    .by-patient { background: #dbeafe; color: #1e40af; }
+    .by-donor { background: #d1fae5; color: #065f46; }
+    .by-unknown { background: #f1f5f9; color: #64748b; }
+
+    /* Action buttons row — compact */
+    .act-row { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; }
+    .act-btn {
+        padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 600;
+        border: none; color: #fff; cursor: pointer; text-decoration: none; display: inline-flex;
+        align-items: center; gap: 3px; white-space: nowrap;
+    }
+    .act-btn:hover { opacity: 0.88; color: #fff; }
+    .act-review { background: #3b82f6; }
+    .act-broadcast { background: #7c3aed; }
+    .act-approve { background: #10b981; }
+    .act-reject { background: #ef4444; }
+
+    .empty-msg { text-align: center; padding: 40px 20px; color: #7f8c8d; }
+    .empty-msg i { font-size: 2.5rem; display: block; margin-bottom: 12px; color: #bdc3c7; }
+    .empty-msg a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+</style>
+
+<div class="container-fluid req-page">
+    <h2 class="page-title"><i class="fas fa-clipboard-list"></i> Blood Requests</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="white-space:pre-line; margin-bottom:12px; font-size:0.9rem;">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if blood_requests %}
+    <p class="page-subtitle">{{ total_pending }} pending requests &middot; {{ total_pending_units }} ml total</p>
+    <div class="req-card">
+        <table class="req-table">
+            <thead><tr>
+                <th class="col-id">#</th>
+                <th class="col-name">Patient</th>
+                <th class="col-age">Age</th>
+                <th class="col-reason">Reason</th>
+                <th class="col-bg">BG</th>
+                <th class="col-unit">ml</th>
+                <th class="col-priority">Priority</th>
+                <th class="col-stock">Stock</th>
+                <th class="col-date">Date</th>
+                <th class="col-by">By</th>
+                <th class="col-status">Status</th>
+                <th class="col-action">Actions</th>
+            </tr></thead>
+            <tbody>
+            {% for r in blood_requests %}
+            <tr>
+                <td class="id-cell">{{ r.id }}</td>
+                <td class="name-cell" title="{{ r.patient_name }}">{{ r.patient_name|truncatechars:18 }}</td>
+                <td class="muted" style="text-align:center">{{ r.patient_age }}</td>
+                <td class="reason-cell" title="{{ r.reason }}">{{ r.reason|truncatechars:30 }}</td>
+                <td style="text-align:center"><span class="bg-badge">{{ r.bloodgroup }}</span></td>
+                <td class="unit-cell" style="text-align:center">{{ r.unit }}</td>
+                <td style="text-align:center">
+                    <span class="pri-badge pri-{{ r.priority_css|cut:'priority-' }}">
+                        {{ r.priority_label }}
+                    </span>
+                    {% if r.days_waiting > 0 %}<span class="days-sm">{{ r.days_waiting }}d</span>{% endif %}
+                </td>
+                <td style="text-align:center">
+                    <span class="stk-badge {{ r.stock_css }}">{{ r.stock_label }}</span>
+                    <span class="stk-num">{{ r.stock_units }}ml</span>
+                </td>
+                <td class="muted">{{ r.date|date:"d M" }}</td>
+                <td>
+                    {% if r.patient %}
+                        <span class="by-badge by-patient" title="{{ r.patient.get_name }}">{{ r.patient.get_name|truncatechars:14 }}</span>
+                    {% elif r.request_by_donor %}
+                        <span class="by-badge by-donor" title="{{ r.request_by_donor.get_name }}">{{ r.request_by_donor.get_name|truncatechars:14 }}</span>
+                    {% else %}
+                        <span class="by-badge by-unknown">Unknown</span>
+                    {% endif %}
+                </td>
+                <td style="text-align:center">
+                    <span class="sts-badge sts-{{ r.status|lower }}">{{ r.status }}</span>
+                </td>
+                <td>
+                    <div class="act-row">
+                        <a class="act-btn act-review" href="{% url 'admin-request-recommendations' r.id %}"><i class="fas fa-brain"></i> Review</a>
+                        <form method="post" action="{% url 'emergency-broadcast' r.id %}" style="display:inline;margin:0">{% csrf_token %}<button type="submit" class="act-btn act-broadcast" onclick="return confirm('Send emergency broadcast?')"><i class="fas fa-bullhorn"></i></button></form>
+                        <form method="post" action="{% url 'approve-request' r.id %}" style="display:inline;margin:0">{% csrf_token %}<button type="submit" class="act-btn act-approve" onclick="return confirm('Approve this request? Blood will be deducted from stock.')"><i class="fas fa-check"></i></button></form>
+                        <form method="post" action="{% url 'reject-request' r.id %}" style="display:inline;margin:0">{% csrf_token %}<button type="submit" class="act-btn act-reject" onclick="return confirm('Reject this request?')"><i class="fas fa-times"></i></button></form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="req-card">
+        <div class="empty-msg">
+            <i class="fas fa-inbox"></i>
+            <h4>No Pending Blood Requests</h4>
+            <p>All requests have been processed. <a href="{% url 'admin-request-history' %}"><i class="fas fa-history"></i> View History</a></p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}

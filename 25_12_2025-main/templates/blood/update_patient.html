@@ -1,0 +1,93 @@
+{% extends 'blood/adminbase.html' %}
+{% load widget_tweaks %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Update Patient</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h4>User Information</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            {% render_field userForm.first_name class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            {% render_field userForm.last_name class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Username</label>
+                    {% render_field userForm.username class="form-control" %}
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    {% render_field userForm.email class="form-control" %}
+                </div>
+
+                <h4>Patient Information</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Age</label>
+                            {% render_field patientForm.age class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Blood Group</label>
+                            {% render_field patientForm.bloodgroup class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Mobile</label>
+                            {% render_field patientForm.mobile class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Disease</label>
+                            {% render_field patientForm.disease class="form-control" %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Doctor Name</label>
+                            {% render_field patientForm.doctorname class="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Address</label>
+                    {% render_field patientForm.address class="form-control" %}
+                </div>
+
+                <div class="form-group">
+                    <label>Profile Picture</label>
+                    {% render_field patientForm.profile_pic class="form-control-file" %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update Patient</button>
+                <a href="/admin-patient" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

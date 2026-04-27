@@ -1,0 +1,275 @@
+{% extends 'patient/patientbase.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    .request-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .form-container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        max-width: 700px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .form-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3498db, #2980b9);
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+    }
+    
+    .request-icon {
+        font-size: 4rem;
+        color: #3498db;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .form-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .form-subtitle {
+        color: #7f8c8d;
+        font-size: 1.2rem;
+        margin-top: 20px;
+        font-weight: 500;
+    }
+    
+    .form-row {
+        margin-bottom: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 15px 20px;
+        border: 2px solid #ecf0f1;
+        border-radius: 15px;
+        font-size: 1rem;
+        font-family: 'Poppins', sans-serif;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+    
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        background: white;
+        outline: none;
+    }
+    
+    .blood-group-select {
+        position: relative;
+    }
+    
+    .blood-group-select select {
+        width: 100%;
+        padding: 15px 20px;
+        border: 2px solid #ecf0f1;
+        border-radius: 15px;
+        font-size: 1rem;
+        font-family: 'Poppins', sans-serif;
+        background: #f8f9fa;
+        appearance: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .submit-btn {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        padding: 18px 50px;
+        border: none;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(52, 152, 219, 0.4);
+    }
+</style>
+
+<div class="request-dashboard">
+    <div class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <div class="request-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <h1 class="form-title">Request Blood</h1>
+                <p class="form-subtitle">Submit your blood requirement request</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="POST" enctype="multipart/form-data" autocomplete="off" id="requestForm">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i>
+                        Patient Name
+                    </label>
+                    <input type="text" name="patient_name" class="form-control" placeholder="Enter patient full name" value="{{ form_data.patient_name|default:'' }}" required>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt"></i>
+                        Patient Age
+                    </label>
+                    <input type="number" name="patient_age" class="form-control" placeholder="Enter patient age" min="1" max="120" value="{{ form_data.patient_age|default:'' }}" required>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">
+                        <i class="fas fa-stethoscope"></i>
+                        Medical Reason
+                    </label>
+                    <textarea name="reason" class="form-control" rows="4" placeholder="Describe the medical condition and urgency" required>{{ form_data.reason|default:'' }}</textarea>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">
+                        <i class="fas fa-tint"></i>
+                        Blood Group Required
+                    </label>
+                    <div class="blood-group-select">
+                        <select name="bloodgroup" required>
+                            <option disabled="disabled" {% if not form_data.bloodgroup %}selected="selected"{% endif %}>Choose Blood Group</option>
+                            <option value="O+" {% if form_data.bloodgroup == 'O+' %}selected{% endif %}>O+</option>
+                            <option value="O-" {% if form_data.bloodgroup == 'O-' %}selected{% endif %}>O-</option>
+                            <option value="A+" {% if form_data.bloodgroup == 'A+' %}selected{% endif %}>A+</option>
+                            <option value="A-" {% if form_data.bloodgroup == 'A-' %}selected{% endif %}>A-</option>
+                            <option value="B+" {% if form_data.bloodgroup == 'B+' %}selected{% endif %}>B+</option>
+                            <option value="B-" {% if form_data.bloodgroup == 'B-' %}selected{% endif %}>B-</option>
+                            <option value="AB+" {% if form_data.bloodgroup == 'AB+' %}selected{% endif %}>AB+</option>
+                            <option value="AB-" {% if form_data.bloodgroup == 'AB-' %}selected{% endif %}>AB-</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">
+                        <i class="fas fa-flask"></i>
+                        Unit (in ml)
+                    </label>
+                    <input type="number" name="unit" class="form-control" placeholder="Enter required amount (ml)" min="100" max="500" value="{{ form_data.unit|default:'' }}" required>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Hospital Zip / Postal Code
+                    </label>
+                    <input type="text" name="request_zipcode" class="form-control" placeholder="Enter 4-10 digit code" value="{{ form_data.request_zipcode|default:'' }}">
+                    <small class="text-muted">Used so coordinators can prioritize nearby facilities for urgent cases.</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="patientUrgentToggle" name="is_urgent" {% if form_data.is_urgent %}checked{% endif %}>
+                        <label class="custom-control-label" for="patientUrgentToggle">Mark as urgent &amp; highlight this request to admins</label>
+                    </div>
+                    <small class="text-muted">Urgent requests jump to the top of the admin review queue. A postal code ensures the right hospital teams are contacted.</small>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-label">
+                        <i class="fas fa-file-prescription"></i>
+                        Doctor's Prescription <span style="color:#e74c3c;">*</span>
+                    </label>
+                    <div style="border: 2px dashed #bdc3c7; border-radius: 15px; padding: 20px; background: #f8f9fa; transition: all 0.3s ease;">
+                        <input type="file" name="doctor_prescription" class="form-control-file" required
+                               accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-info-circle"></i> A doctor's prescription is <strong>mandatory</strong> for every blood request (including emergency).
+                            Accepted: PDF, JPG, PNG, DOC, DOCX (max 10MB)
+                        </small>
+                    </div>
+                </div>
+
+                <button class="submit-btn" type="submit" id="submitButton">
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Request
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        submitBtn.disabled = true;
+    });
+});
+</script>
+
+{% endblock content %}

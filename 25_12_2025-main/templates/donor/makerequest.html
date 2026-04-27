@@ -1,0 +1,135 @@
+{% extends 'donor/donorbase.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    .request-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .form-container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .form-control {
+        padding: 15px 20px;
+        border: 2px solid #ecf0f1;
+        border-radius: 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        background: white;
+        outline: none;
+    }
+    
+    .submit-btn {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        padding: 18px 50px;
+        border: none;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        width: 100%;
+    }
+</style>
+
+<div class="request-dashboard">
+    <div class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h1 style="color: #2c3e50; font-size: 2.5rem; margin-bottom: 15px;">
+                    <i class="fas fa-plus-circle" style="color: #3498db;"></i> Request Blood
+                </h1>
+                <p style="color: #7f8c8d;">Submit a blood request for a patient in need</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Patient Name</label>
+                    <input type="text" name="patient_name" class="form-control" placeholder="Enter patient full name" value="{{ form_data.patient_name|default:'' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-alt"></i> Patient Age</label>
+                    <input type="number" name="patient_age" class="form-control" placeholder="Enter patient age" min="1" max="120" value="{{ form_data.patient_age|default:'' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-stethoscope"></i> Medical Reason</label>
+                    <textarea name="reason" class="form-control" rows="4" placeholder="Describe the medical condition and urgency" required>{{ form_data.reason|default:'' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-tint"></i> Blood Group Required</label>
+                    <select name="bloodgroup" class="form-control" required>
+                        <option value="" {% if not form_data.bloodgroup %}selected{% endif %}>Choose Blood Group</option>
+                        <option value="O+" {% if form_data.bloodgroup == 'O+' %}selected{% endif %}>O+</option>
+                        <option value="O-" {% if form_data.bloodgroup == 'O-' %}selected{% endif %}>O-</option>
+                        <option value="A+" {% if form_data.bloodgroup == 'A+' %}selected{% endif %}>A+</option>
+                        <option value="A-" {% if form_data.bloodgroup == 'A-' %}selected{% endif %}>A-</option>
+                        <option value="B+" {% if form_data.bloodgroup == 'B+' %}selected{% endif %}>B+</option>
+                        <option value="B-" {% if form_data.bloodgroup == 'B-' %}selected{% endif %}>B-</option>
+                        <option value="AB+" {% if form_data.bloodgroup == 'AB+' %}selected{% endif %}>AB+</option>
+                        <option value="AB-" {% if form_data.bloodgroup == 'AB-' %}selected{% endif %}>AB-</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-flask"></i> Unit (in ml)</label>
+                    <input type="number" name="unit" class="form-control" placeholder="Enter required amount (ml)" min="100" max="500" value="{{ form_data.unit|default:'' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Patient Zip / Postal Code</label>
+                    <input type="text" name="request_zipcode" class="form-control" placeholder="Enter 4-10 digit code" value="{{ form_data.request_zipcode|default:'' }}">
+                    <small class="text-muted">Defaults to your profile zip if available. It helps admins coordinate nearby hospitals.</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="donorUrgentToggle" name="is_urgent" {% if form_data.is_urgent %}checked{% endif %}>
+                        <label class="custom-control-label" for="donorUrgentToggle">Mark as urgent &amp; highlight this request to admins</label>
+                    </div>
+                    <small class="text-muted">Urgent requests jump ahead in the admin review queue once submitted.</small>
+                </div>
+
+                <button class="submit-btn" type="submit">
+                    <i class="fas fa-paper-plane"></i> Submit Request
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

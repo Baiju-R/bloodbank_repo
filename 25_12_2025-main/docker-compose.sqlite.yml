@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8080"
+    env_file:
+      - .env
+    environment:
+      DEBUG: "false"
+      SERVE_MEDIA: "true"
+      # Use a persistent path on the VM
+      DATABASE_URL: "sqlite:////data/db.sqlite3"
+      MIGRATE_ON_STARTUP: "true"
+      # Keep gunicorn small on low-memory VMs
+      GUNICORN_WORKERS: "1"
+      GUNICORN_TIMEOUT: "180"
+      # If you aren't running Redis/Celery worker, keep demo mode
+      CELERY_TASK_ALWAYS_EAGER: "true"
+      # SMS is controlled via .env (AWS_SNS_ENABLED=true/false)
+    volumes:
+      # Persistent SQLite DB
+      - ./data:/data
+      # Persist user uploads
+      - ./media:/app/media

@@ -1,0 +1,1 @@
+[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":25,"VolumeType":"gp3","DeleteOnTermination":true}}]

@@ -1,0 +1,927 @@
+{% extends 'donor/donorbase.html' %}
+{% block content %}
+{% load static %}
+{% load math_filters %}
+
+<style>
+    .donor-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 30px 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Animated background particles */
+    .donor-dashboard::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 1px, transparent 1px),
+                          radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: moveBackground 20s linear infinite;
+        z-index: 0;
+    }
+    
+    @keyframes moveBackground {
+        0% { background-position: 0 0, 25px 25px; }
+        100% { background-position: 50px 50px, 75px 75px; }
+    }
+    
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dashboard-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+        animation: fadeInDown 0.8s ease-out;
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .dashboard-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .dashboard-title .fas {
+        animation: heartPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes heartPulse {
+        0%, 100% { 
+            transform: scale(1);
+            filter: drop-shadow(0 0 10px rgba(231, 76, 60, 0.5));
+        }
+        50% { 
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 20px rgba(231, 76, 60, 0.8));
+        }
+    }
+    
+    .dashboard-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        font-weight: 500;
+    }
+    
+    .welcome-section {
+        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,249,250,0.98));
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 45px;
+        margin-bottom: 40px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.8s ease-out 0.2s both;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .welcome-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60, #3498db, #9b59b6);
+        background-size: 200% 100%;
+        animation: gradient-shift 3s ease-in-out infinite;
+    }
+    
+    @keyframes gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    .welcome-icon {
+        font-size: 4.5rem;
+        color: #e74c3c;
+        margin-bottom: 25px;
+        animation: bounceIn 1s ease-out;
+        filter: drop-shadow(0 8px 20px rgba(231, 76, 60, 0.4));
+    }
+    
+    @keyframes bounceIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.3);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        70% { transform: scale(0.9); }
+        100% { transform: scale(1); }
+    }
+    
+    .welcome-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+    
+    .welcome-text {
+        font-size: 1.15rem;
+        color: #7f8c8d;
+        line-height: 1.8;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* Availability toggle */
+    .availability-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,249,250,0.98));
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px 25px;
+        margin: -15px auto 35px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        border: 1px solid rgba(255,255,255,0.3);
+        max-width: 900px;
+    }
+
+    .availability-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .availability-title {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+    }
+
+    .availability-help {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin: 6px 0 0;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 64px;
+        height: 34px;
+        vertical-align: middle;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e74c3c; /* red when unavailable */
+        transition: .25s;
+        border-radius: 34px;
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,0.08);
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .25s;
+        border-radius: 50%;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    }
+
+    input:checked + .slider {
+        background-color: #2ecc71; /* green when available */
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(30px);
+    }
+
+    .availability-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 8px 12px;
+        border-radius: 999px;
+        color: white;
+        user-select: none;
+    }
+
+    .availability-badge.available { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+    .availability-badge.unavailable { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+    
+    .stats-container {
+        margin-bottom: 40px;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,249,250,0.98));
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 35px 25px;
+        text-align: center;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        margin-bottom: 25px;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.3);
+        animation: fadeInUp 0.6s ease-out both;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .stat-card:nth-child(1) { animation-delay: 0.3s; }
+    .stat-card:nth-child(2) { animation-delay: 0.4s; }
+    .stat-card:nth-child(3) { animation-delay: 0.5s; }
+    .stat-card:nth-child(4) { animation-delay: 0.6s; }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card.donations-made::before { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+    .stat-card.donations-approved::before { background: linear-gradient(90deg, #3498db, #2980b9); }
+    .stat-card.donations-pending::before { background: linear-gradient(90deg, #f39c12, #e67e22); }
+    .stat-card.requests-made::before { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+    
+    .stat-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+    }
+    
+    .stat-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card.donations-made .stat-icon { 
+        color: #27ae60;
+        filter: drop-shadow(0 4px 10px rgba(39, 174, 96, 0.3));
+    }
+    .stat-card.donations-approved .stat-icon { 
+        color: #3498db;
+        filter: drop-shadow(0 4px 10px rgba(52, 152, 219, 0.3));
+    }
+    .stat-card.donations-pending .stat-icon { 
+        color: #f39c12;
+        filter: drop-shadow(0 4px 10px rgba(243, 156, 18, 0.3));
+    }
+    .stat-card.requests-made .stat-icon { 
+        color: #e74c3c;
+        filter: drop-shadow(0 4px 10px rgba(231, 76, 60, 0.3));
+    }
+    
+    .stat-card:hover .stat-icon {
+        transform: scale(1.15) rotate(5deg);
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        color: #2c3e50;
+        line-height: 1;
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .quick-actions {
+        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,249,250,0.98));
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 45px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.8s ease-out 0.7s both;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    
+    .quick-actions::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60, #3498db);
+        background-size: 200% 100%;
+        animation: gradient-shift 3s ease-in-out infinite;
+    }
+    
+    .quick-actions-title {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 35px;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .quick-actions-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+        border-radius: 2px;
+    }
+    
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .action-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 22px 30px;
+        border-radius: 15px;
+        text-decoration: none;
+        font-weight: 700;
+        text-align: center;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+        font-size: 1.05rem;
+    }
+    
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.3);
+        transition: width 0.6s ease, height 0.6s ease;
+        transform: translate(-50%, -50%);
+    }
+    
+    .action-btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 45px rgba(102, 126, 234, 0.5);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .action-btn.donate { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .action-btn.history { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .action-btn.request { background: linear-gradient(135deg, #f39c12, #e67e22); }
+    .action-btn.track { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+    
+    .action-btn i {
+        font-size: 1.3rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .action-btn span {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .impact-section {
+        background: linear-gradient(135deg, rgba(39, 174, 96, 0.95), rgba(46, 204, 113, 0.95));
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 40px;
+        margin-top: 40px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 20px 60px rgba(39, 174, 96, 0.4);
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.8s ease-out 0.9s both;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    
+    .impact-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #f39c12, #e67e22);
+    }
+    
+    .impact-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .impact-text {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        line-height: 1.8;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .impact-highlight {
+        color: #f39c12;
+        font-weight: 800;
+        font-size: 1.3em;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .error-section {
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(192, 57, 43, 0.15));
+        border: 3px solid #e74c3c;
+        border-radius: 25px;
+        padding: 60px;
+        text-align: center;
+        color: #e74c3c;
+        animation: slideInUp 0.8s ease-out both;
+    }
+    
+    .error-section i {
+        font-size: 5rem;
+        margin-bottom: 25px;
+        animation: shake 1s ease-in-out infinite;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .dashboard-title {
+            font-size: 2rem;
+        }
+        
+        .welcome-section {
+            padding: 30px 20px;
+        }
+        
+        .stat-card {
+            padding: 25px 15px;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+        }
+        
+        .quick-actions {
+            padding: 30px 20px;
+        }
+        
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+        
+        .impact-section {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<div class="donor-dashboard">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">
+                <i class="fas fa-heart"></i>
+                <span>BloodBridge Donor Dashboard</span>
+            </h1>
+            <p class="dashboard-subtitle">Your generosity builds bridges that save lives every day</p>
+        </div>
+
+        {% if donor %}
+        <div class="welcome-section">
+            <div class="welcome-icon">
+                <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <h2 class="welcome-title">Welcome back, {{ donor.get_name }}!</h2>
+            <p class="welcome-text">
+                Thank you for being a BloodBridge life-saver. Your blood donations make a real difference in our community. 
+                Together, we're building bridges to a healthier future for everyone.
+            </p>
+        </div>
+
+        <div class="availability-card">
+            <div class="availability-row">
+                <div>
+                    <p class="availability-title">
+                        <i class="fas fa-toggle-on"></i>
+                        Availability Status
+                    </p>
+                    <p class="availability-help">Admins will prioritize available donors in recommendations.</p>
+                </div>
+
+                <form method="post" action="{% url 'donor-set-availability' %}" id="availabilityForm" style="margin:0; display:flex; align-items:center; gap:12px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="available" id="availabilityValue" value="{% if donor.is_available %}1{% else %}0{% endif %}">
+
+                    <label class="switch" title="Toggle your availability">
+                        <input type="checkbox" id="availabilityToggle" {% if donor.is_available %}checked{% endif %} aria-label="Toggle availability">
+                        <span class="slider"></span>
+                    </label>
+
+                    {% if donor.is_available %}
+                        <span class="availability-badge available" id="availabilityBadge"><i class="fas fa-check-circle"></i> Available</span>
+                    {% else %}
+                        <span class="availability-badge unavailable" id="availabilityBadge"><i class="fas fa-times-circle"></i> Not Available</span>
+                    {% endif %}
+                </form>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        var toggle = document.getElementById('availabilityToggle');
+                        var value = document.getElementById('availabilityValue');
+                        var form = document.getElementById('availabilityForm');
+                        var badge = document.getElementById('availabilityBadge');
+                        if (!toggle || !value || !form || !badge) return;
+
+                        toggle.addEventListener('change', function () {
+                            var available = !!toggle.checked;
+                            value.value = available ? '1' : '0';
+                            badge.classList.toggle('available', available);
+                            badge.classList.toggle('unavailable', !available);
+                            badge.innerHTML = available
+                                ? '<i class="fas fa-check-circle"></i> Available'
+                                : '<i class="fas fa-times-circle"></i> Not Available';
+                            form.submit();
+                        });
+                    });
+                </script>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="border-radius: 15px; animation: slideDown 0.5s ease-out;">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="stats-container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card donations-made">
+                        <div class="stat-icon">
+                            <i class="fas fa-hand-holding-medical"></i>
+                        </div>
+                        <div class="stat-number">{{ total_donations }}</div>
+                        <div class="stat-label">Total Donations</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card donations-approved">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-number">{{ approved_donations }}</div>
+                        <div class="stat-label">Approved</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card donations-pending">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-number">{{ pending_donations }}</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card requests-made">
+                        <div class="stat-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="stat-number">{{ requestmade }}</div>
+                        <div class="stat-label">Requests Made</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <h3 class="quick-actions-title">
+                <i class="fas fa-bolt"></i> Quick Actions
+            </h3>
+            <div class="action-buttons">
+                <a href="{% url 'donate-blood' %}" class="action-btn donate">
+                    <i class="fas fa-hand-holding-medical"></i>
+                    <span>Donate Blood</span>
+                </a>
+                <a href="{% url 'donor-history' %}" class="action-btn history">
+                    <i class="fas fa-history"></i>
+                    <span>Donation History</span>
+                </a>
+                <a href="{% url 'donor-request-blood' %}" class="action-btn request">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Request Blood</span>
+                </a>
+                <a href="{% url 'donor-request-history' %}" class="action-btn track">
+                    <i class="fas fa-list-alt"></i>
+                    <span>Track Requests</span>
+                </a>
+                <a href="{% url 'donor-appointments' %}" class="action-btn history">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Book Appointment</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="quick-actions" style="margin-top: 24px;">
+            <h3 class="quick-actions-title"><i class="fas fa-shield-alt"></i> Eligibility & Trust</h3>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;">
+                <div style="background:rgba(255,255,255,0.95);border-radius:16px;padding:16px;color:#1f2937;">
+                    <div style="font-weight:800;">{{ eligibility.label }}</div>
+                    {% if eligibility.reasons %}
+                        <ul style="margin:10px 0 0;padding-left:18px;">
+                            {% for reason in eligibility.reasons %}<li>{{ reason }}</li>{% endfor %}
+                        </ul>
+                    {% else %}
+                        <div style="margin-top:8px;color:#16a34a;font-weight:700;">You can donate now.</div>
+                    {% endif %}
+                </div>
+                <div style="background:rgba(255,255,255,0.95);border-radius:16px;padding:16px;color:#1f2937;">
+                    <div style="font-weight:800;"><i class="fas fa-file-medical"></i> Medical Report</div>
+                    {% if is_medical_report_valid %}
+                        {% if medical_report_days_remaining <= 14 %}
+                            <div style="margin-top:8px;color:#d97706;font-weight:600;">
+                                <i class="fas fa-exclamation-triangle"></i> Expiring in {{ medical_report_days_remaining }} days
+                            </div>
+                            <div style="font-size:0.85rem;color:#92400e;">Expires: {{ medical_report_expiry|date:"d M Y" }}</div>
+                        {% else %}
+                            <div style="margin-top:8px;color:#16a34a;font-weight:600;">
+                                <i class="fas fa-check-circle"></i> Valid ({{ medical_report_days_remaining }} days left)
+                            </div>
+                            <div style="font-size:0.85rem;color:#475569;">Expires: {{ medical_report_expiry|date:"d M Y" }}</div>
+                        {% endif %}
+                    {% else %}
+                        <div style="margin-top:8px;color:#dc2626;font-weight:600;">
+                            <i class="fas fa-times-circle"></i> Expired / Not uploaded
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'donor-medical-reports' %}" style="display:inline-block;margin-top:8px;font-size:0.85rem;font-weight:600;color:#3b82f6;">
+                        <i class="fas fa-upload"></i> Manage Reports
+                    </a>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px;">
+                <div style="background:rgba(255,255,255,0.95);border-radius:16px;padding:16px;color:#1f2937;">
+                    <div style="font-weight:800;">Verification Badge</div>
+                    {% if verification_badge %}
+                        <div style="margin-top:8px;">{{ verification_badge.badge_name }} {% if verification_badge.is_verified %}✅{% else %}⏳{% endif %}</div>
+                        <div style="font-size:0.95rem;color:#475569;">Trust score: {{ verification_badge.trust_score }}/100</div>
+                    {% else %}
+                        <div style="margin-top:8px;color:#64748b;">No badge assigned yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions" style="margin-top: 24px;">
+            <h3 class="quick-actions-title"><i class="fas fa-trophy"></i> Gamification</h3>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;">
+                <div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:14px;color:#1f2937;"><strong>{{ donation_streak }}</strong><br>Donation streak</div>
+                <div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:14px;color:#1f2937;"><strong>{{ lives_helped }}</strong><br>Lives helped</div>
+                <div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:14px;color:#1f2937;"><strong>{% if next_milestone %}{{ next_milestone }}{% else %}✔{% endif %}</strong><br>Next milestone</div>
+                <div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:14px;color:#1f2937;"><strong>{{ donor.zipcode|default:'-' }}</strong><br>Your city code</div>
+            </div>
+            {% if city_leaders %}
+                <div style="margin-top:12px;background:rgba(255,255,255,0.95);border-radius:14px;padding:14px;color:#1f2937;">
+                    <strong>Top City Leaderboard</strong>
+                    <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;">
+                        {% for c in city_leaders %}<span class="badge badge-light">{{ c.zipcode }} • {{ c.total_units|default:0 }} ml</span>{% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="quick-actions" style="margin-top: 24px;">
+            <h3 class="quick-actions-title"><i class="fas fa-bell"></i> Notifications</h3>
+            {% if notifications %}
+                <div style="display:grid;gap:10px;">
+                    {% for note in notifications %}
+                        <div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:12px;color:#1f2937;">
+                            <strong>{{ note.title }}</strong>
+                            <div>{{ note.message }}</div>
+                            <small style="color:#64748b;">{{ note.created_at|date:"d M Y H:i" }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:12px;color:#64748b;">No notifications yet.</div>
+            {% endif %}
+        </div>
+
+        <div class="quick-actions" style="margin-top: 30px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <h3 class="quick-actions-title" style="margin-bottom: 0;">
+                    <i class="fas fa-comment-dots"></i> Your Feedback
+                </h3>
+                <a href="{% url 'donor-feedback' %}" class="action-btn donate" style="max-width: 280px;">
+                    <i class="fas fa-pen"></i>
+                    <span>Write a Review</span>
+                </a>
+            </div>
+
+            {% if recent_feedbacks %}
+                <div style="margin-top: 16px; display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+                    {% for fb in recent_feedbacks %}
+                        <div style="background:rgba(255,255,255,0.98);border:1px solid rgba(226,232,240,0.9);border-radius:18px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,0.08);">
+                            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                                <div style="font-weight:900;color:#0f172a;">{{ fb.feedback_for }} • {{ fb.created_at|date:"d M Y" }}</div>
+                                <div style="font-weight:900;color:#64748b;">
+                                    {% star_range as stars %}
+                                    <span style="color:#f1c40f;letter-spacing:1px;">{% for i in stars %}{% if fb.rating >= i %}★{% else %}☆{% endif %}{% endfor %}</span>
+                                    {% if fb.admin_reaction %}<span style="margin-left:8px;">{{ fb.admin_reaction }}</span>{% endif %}
+                                </div>
+                            </div>
+                            <div style="margin-top:10px;color:#334155;white-space:pre-wrap;">{{ fb.message|truncatechars:220 }}</div>
+
+                            {% if fb.image1 or fb.image2 or fb.image3 %}
+                                <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+                                    {% if fb.image1 %}<a href="{{ fb.image1.url }}" target="_blank"><img src="{{ fb.image1.url }}" alt="feedback image 1" style="width:96px;height:78px;border-radius:14px;object-fit:cover;border:1px solid rgba(226,232,240,0.9);"></a>{% endif %}
+                                    {% if fb.image2 %}<a href="{{ fb.image2.url }}" target="_blank"><img src="{{ fb.image2.url }}" alt="feedback image 2" style="width:96px;height:78px;border-radius:14px;object-fit:cover;border:1px solid rgba(226,232,240,0.9);"></a>{% endif %}
+                                    {% if fb.image3 %}<a href="{{ fb.image3.url }}" target="_blank"><img src="{{ fb.image3.url }}" alt="feedback image 3" style="width:96px;height:78px;border-radius:14px;object-fit:cover;border:1px solid rgba(226,232,240,0.9);"></a>{% endif %}
+                                </div>
+                            {% else %}
+                                <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+                                    <img src="{% if fb.feedback_for == 'DONATION' %}{% static 'image/feedback_donation.svg' %}{% elif fb.feedback_for == 'REQUEST' %}{% static 'image/feedback_request.svg' %}{% else %}{% static 'image/feedback_general.svg' %}{% endif %}"
+                                         alt="feedback cover image"
+                                         style="width:96px;height:78px;border-radius:14px;object-fit:cover;border:1px solid rgba(226,232,240,0.9);">
+                                </div>
+                            {% endif %}
+
+                            {% if fb.admin_reply %}
+                                <div style="margin-top:12px;background:rgba(102,126,234,0.10);border:1px solid rgba(102,126,234,0.18);border-radius:14px;padding:10px 12px;">
+                                    <div style="font-weight:900;color:#334155;">Admin Reply</div>
+                                    <div style="margin-top:6px;color:#1f2937;white-space:pre-wrap;">{{ fb.admin_reply|truncatechars:220 }}</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mini-subtle" style="margin-top:12px;color:rgba(255,255,255,0.9);">Only public feedback appears on the homepage.</div>
+            {% else %}
+                <div style="margin-top: 14px; background:rgba(255,255,255,0.95); border-radius:18px; padding:14px; color:#64748b;">
+                    No feedback submitted yet. Click “Write a Review” to share your experience.
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="impact-section">
+            <h3 class="impact-title">
+                <i class="fas fa-award"></i>
+                <span>Your BloodBridge Impact</span>
+            </h3>
+            <p class="impact-text">
+                Through BloodBridge, you have donated <span class="impact-highlight">{{ total_units_donated }}ml</span> of blood, 
+                potentially saving <span class="impact-highlight">{{ total_units_donated|floatformat:0 }}</span> lives! 
+                Your <span class="impact-highlight">{{ approved_donations }}</span> approved donations show your commitment to our BloodBridge community.
+            </p>
+        </div>
+        
+        {% else %}
+        <div class="error-section">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3 style="font-size: 2rem; margin-bottom: 15px;">Donor Profile Not Found</h3>
+            <p style="font-size: 1.1rem; margin-bottom: 25px;">Your donor profile could not be loaded. Please contact support or try logging in again.</p>
+            <a href="{% url 'donorlogin' %}" class="btn btn-danger btn-lg" style="padding: 15px 40px; border-radius: 25px; font-weight: 700;">
+                <i class="fas fa-sign-in-alt"></i> Login Again
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stat numbers on load
+    const statNumbers = document.querySelectorAll('.stat-number');
+    
+    statNumbers.forEach(stat => {
+        const finalValue = parseInt(stat.textContent);
+        if (!isNaN(finalValue)) {
+            let currentValue = 0;
+            const increment = Math.ceil(finalValue / 30);
+            const duration = 1500;
+            const stepTime = duration / (finalValue / increment);
+            
+            const counter = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= finalValue) {
+                    stat.textContent = finalValue;
+                    clearInterval(counter);
+                } else {
+                    stat.textContent = currentValue;
+                }
+            }, stepTime);
+        }
+    });
+});
+</script>
+
+{% endblock content %}
